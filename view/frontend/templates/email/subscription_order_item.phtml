@@ -54,9 +54,16 @@ $productRepository = $objectManager->get('\Magento\Catalog\Api\ProductRepository
                         if($subEnabled && $planHandle){
                             echo $priceCurrency->format(0, false);
                         }else{
-                            echo $priceCurrency->format($_item->getPrice(), false);
+                            if($_item->getRowTotalInclTax() > 0){
+                                $price = $_item->getRowTotalInclTax();
+                                echo $priceCurrency->format($price, false);
+                            }else{
+                                $price = $_item->getRowTotal();
+                                echo $priceCurrency->format($price, false);
+                            }
+
                             $tax_total += $_item->getTaxAmount();
-                            $sub_total += $_item->getPrice();
+                            $sub_total += $price;
                             $discount_total += ($_item->getOriginalPrice() - $_item->getPrice());
                         }
                         ?>
@@ -73,7 +80,7 @@ $productRepository = $objectManager->get('\Magento\Catalog\Api\ProductRepository
         /**
          * Add discount
          */
-        if ($discount_total > 0) {
+        if ($_order->getDiscountAmount() < 0) {
             if ($_order->getDiscountDescription()) {
                 $discountLabel = __('Discount (%1)', $_order->getDiscountDescription());
             } else {
@@ -83,7 +90,7 @@ $productRepository = $objectManager->get('\Magento\Catalog\Api\ProductRepository
                 [
                     'code' => 'discount',
                     'field' => 'discount_amount',
-                    'value' => ($discount_total*-1),
+                    'value' => $_order->getDiscountAmount(),
                     'label' => $discountLabel,
                 ]
             );
@@ -123,7 +130,7 @@ $productRepository = $objectManager->get('\Magento\Catalog\Api\ProductRepository
                 'code' => 'grand_total',
                 'field' => 'grand_total',
                 'strong' => true,
-                'value' => (($sub_total - $discount_total) + $_order->getShippingAmount() + $tax_total),
+                'value' => (($sub_total + $_order->getDiscountAmount()) + $_order->getShippingAmount()),
                 'label' => __('Grand Total'),
             ]
         );
