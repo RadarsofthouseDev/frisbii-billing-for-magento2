@@ -1,0 +1,19 @@
+<?xml version="1.0" ?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+	<event name="payment_method_is_active">
+		<observer name="radarsofthouse_billwerkplus_observer_payment_methodisactive_payment_method_is_active" instance="Radarsofthouse\BillwerkPlusSubscription\Observer\Payment\MethodIsActive"/>
+	</event>
+    <event name="checkout_submit_all_after">
+        <observer name="radarsofthouse_billwerkplussubscription_observer_checkout_submitallafter_checkout_submit_all_after" instance="Radarsofthouse\BillwerkPlusSubscription\Observer\Checkout\SubmitAllAfter"/>
+    </event>
+    <event name="sales_order_payment_place_start">
+        <observer name="radarsofthouse_billwerkplussubscription_sales_order_payment_place_start"
+                  instance="Radarsofthouse\BillwerkPlusSubscription\Observer\Sales\OrderPaymentPlaceStart"/>
+    </event>
+    <event name="sales_model_service_quote_submit_before">
+        <observer name="radarsofthouse_billwerkplussubscription_before_checkout_submit" instance="Radarsofthouse\BillwerkPlusSubscription\Observer\Frontend\Checkout\SubmitBefore"/>
+    </event>
+    <event name="sales_quote_address_collect_totals_after">
+        <observer name="radarsofthouse_billwerkplussubscription_observer_sales_quoteaddresscollecttotalsafter_sales_quote_address_collect_totals_after" instance="Radarsofthouse\BillwerkPlusSubscription\Observer\Sales\QuoteAddressCollectTotalsAfter"/>
+    </event>
+</config>

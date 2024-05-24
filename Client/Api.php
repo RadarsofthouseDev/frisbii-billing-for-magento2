@@ -1,0 +1,435 @@
+<?php
+/**
+ * Copyright © radarsofthouse.dk All rights reserved.
+ * See COPYING.txt for license details.
+ */
+declare(strict_types=1);
+
+namespace Radarsofthouse\BillwerkPlusSubscription\Client;
+
+use Exception;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\RequestOptions;
+use GuzzleHttp\Exception\RequestException;
+use Psr\Http\Message\ResponseInterface;
+
+class Api
+{
+    public const BASE_URI = 'https://api.reepay.com/v1/';
+    public const TIMEOUT = 30;
+    public const VERSION = '1.0.1';
+    public const TYPE = 'subscription';
+
+    /**
+     * @var Client
+     */
+    private $client;
+
+    /**
+     * @var string
+     */
+    private $privateKey;
+
+    /**
+     * @var boolean
+     */
+    private $requestSuccessful = false;
+
+    /**
+     * @var string
+     */
+    private $httpError = '';
+
+    /**
+     * @var array
+     */
+    private $errors = [];
+
+    /**
+     * @var array
+     */
+    private $lastResponse = [];
+
+    /**
+     * @var array
+     */
+    private $lastRequest = [];
+
+    /**
+     * Index constructor
+     */
+    public function __construct()
+    {
+        $this->initClient();
+    }
+
+    /**
+     * Initialize
+     */
+    private function initClient()
+    {
+        $this->client = new Client([
+            'base_uri' => static::BASE_URI,
+            RequestOptions::TIMEOUT => self::TIMEOUT,
+            RequestOptions::VERIFY => false,
+        ]);
+        $this->lastResponse = [
+            'headers' => null,
+            'body' => null,
+        ];
+    }
+
+    /**
+     * Set private key
+     *
+     * @param string $privateKey
+     */
+    public function setPrivateKey(string $privateKey)
+    {
+        $this->privateKey = $privateKey;
+    }
+
+    /**
+     * Get last error
+     *
+     * @return bool
+     */
+    public function getHttpError()
+    {
+        return $this->httpError ?: false;
+    }
+
+    /**
+     * Get array of errors
+     *
+     * @return array
+     */
+    public function getErrors(): array
+    {
+        return $this->errors;
+    }
+
+    /**
+     * Get last response
+     *
+     * @return array
+     */
+    public function getLastResponse(): array
+    {
+        return $this->lastResponse;
+    }
+
+    /**
+     * Get last request
+     *
+     * @return array
+     */
+    public function getLastRequest(): array
+    {
+        return $this->lastRequest;
+    }
+
+    /**
+     * Get last request status
+     *
+     * @return bool
+     */
+    public function success(): bool
+    {
+        return $this->requestSuccessful;
+    }
+
+    /**
+     * Perform a DELETE request
+     *
+     * @param string $apiKey
+     * @param string $endpoint
+     * @param array $args
+     * @param int $timeout
+     * @return mixed
+     * @throws Exception|GuzzleException
+     */
+    public function delete(string $apiKey, string $endpoint, array $args = [], int $timeout = self::TIMEOUT)
+    {
+        $this->setPrivateKey($apiKey);
+
+        return $this->request('delete', $endpoint, $args, $timeout);
+    }
+
+    /**
+     * Perform a GET request
+     *
+     * @param string $apiKey
+     * @param string $endpoint
+     * @param array $args
+     * @param int $timeout
+     * @return mixed
+     * @throws Exception|GuzzleException
+     */
+    public function get(string $apiKey, string $endpoint, array $args = [], int $timeout = self::TIMEOUT)
+    {
+        $this->setPrivateKey($apiKey);
+
+        return $this->request('get', $endpoint, $args, $timeout);
+    }
+
+    /**
+     * Perform a PATCH request
+     *
+     * @param string $apiKey
+     * @param string $endpoint
+     * @param array $args
+     * @param int $timeout
+     * @return mixed
+     * @throws Exception|GuzzleException
+     */
+    public function patch(string $apiKey, string $endpoint, array $args = [], int $timeout = self::TIMEOUT)
+    {
+        $this->setPrivateKey($apiKey);
+
+        return $this->request('patch', $endpoint, $args, $timeout);
+    }
+
+    /**
+     * Perform a POST request
+     *
+     * @param string $apiKey
+     * @param string $endpoint
+     * @param array $args
+     * @param int $timeout
+     * @return mixed
+     * @throws Exception|GuzzleException
+     */
+    public function post(string $apiKey, string $endpoint, array $args = [], int $timeout = self::TIMEOUT)
+    {
+        $this->setPrivateKey($apiKey);
+
+        return $this->request('post', $endpoint, $args, $timeout);
+    }
+
+    /**
+     * Perform a PUT request
+     *
+     * @param string $apiKey
+     * @param string $endpoint
+     * @param array $args
+     * @param int $timeout
+     * @return mixed
+     * @throws Exception|GuzzleException
+     */
+    public function put(string $apiKey, string $endpoint, array $args = [], int $timeout = self::TIMEOUT)
+    {
+        $this->setPrivateKey($apiKey);
+
+        return $this->request('put', $endpoint, $args, $timeout);
+    }
+
+    /**
+     * Perform an API request request
+     *
+     * @param string $verb
+     * @param string $endpoint
+     * @param array $args
+     * @param int $timeout
+     * @return mixed
+     * @throws Exception|GuzzleException
+     */
+    private function request(string $verb, string $endpoint, array $args = [], int $timeout = self::TIMEOUT)
+    {
+        $url = static::BASE_URI . $endpoint;
+        $response = $this->prepareStateForRequest($verb, $endpoint, $url, $timeout);
+        $responseContent = null;
+        $options = [
+            RequestOptions::VERSION => 1.0,
+            RequestOptions::AUTH => [$this->privateKey, 'password'],
+            RequestOptions::HEADERS => [
+                'User-Agent' => 'magento/ba460eaaf82cf719170e3365f63094c4',
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json',
+                'X-Client-Version' => self::VERSION,
+                'X-Client-Type' => self::TYPE,
+                'X-Magento-Version' => $this->getMagentoVersion(),
+                'X-Magento-Edition' => $this->getMagentoEdition(),
+            ],
+        ];
+
+        try {
+            switch ($verb) {
+                case 'post':
+                    $options[RequestOptions::JSON] = $args;
+                    $this->lastRequest['body'] = json_encode($args);
+                    $responseContent = $this->client->post($url, $options);
+
+                    break;
+                case 'get':
+                    $options[RequestOptions::QUERY] = $args;
+                    $responseContent = $this->client->get($url, $options);
+
+                    break;
+                case 'delete':
+                    $options[RequestOptions::QUERY] = $args;
+                    $responseContent = $this->client->delete($url, $options);
+
+                    break;
+                case 'put':
+                    $options[RequestOptions::JSON] = $args;
+                    $this->lastRequest['body'] = json_encode($args);
+                    $responseContent = $this->client->put($url, $options);
+
+                    break;
+            }
+
+            $response = $this->requestSuccess($responseContent);
+        } catch (RequestException $e) {
+            $response = $this->requestError($e);
+        }
+        return $this->formatResponse($response);
+    }
+
+    /**
+     * Request Success
+     *
+     * @param ResponseInterface $response
+     * @return array
+     */
+    private function requestSuccess(ResponseInterface $response): array
+    {
+        $this->requestSuccessful = true;
+        $this->lastResponse['headers'] = $this->getHeadersAsArray($response);
+        $this->lastResponse['headers']['http_code'] = $response->getStatusCode();
+        $this->lastResponse['headers']['http_reason'] = $response->getReasonPhrase();
+        $this->lastResponse['body'] = (string)$response->getBody()->getContents();
+
+        return $this->lastResponse;
+    }
+
+    /**
+     * Request Error
+     *
+     * @param RequestException $e
+     * @return array
+     */
+    private function requestError(RequestException $e): array
+    {
+        $this->requestSuccessful = false;
+        $this->lastRequest['headers'] = $this->getHeadersAsArray($e->getRequest());
+        if (in_array($e->getRequest()->getMethod(), ['POST', 'PUT'])) {
+            $this->lastRequest['body'] = $e->getRequest()->getBody();
+        }
+        if ($e->hasResponse()) {
+            $this->lastResponse['headers'] = $this->getHeadersAsArray($e->getResponse());
+            $this->lastResponse['headers']['http_code'] = $e->getResponse()->getStatusCode();
+            $this->lastResponse['headers']['http_reason'] = $e->getResponse()->getReasonPhrase();
+            $this->lastResponse['body'] = (string)$e->getResponse()->getBody();
+            $this->httpError = sprintf(
+                '%d: %s',
+                $e->getResponse()->getStatusCode(),
+                $e->getResponse()->getReasonPhrase()
+            );
+            if (!empty($this->lastResponse['body'])) {
+                $formattedBody = json_decode($this->lastResponse['body'], true);
+                if (array_key_exists('error', $formattedBody)) {
+                    $this->httpError = sprintf('%d: %s', $formattedBody['http_status'], $formattedBody['http_reason']);
+                    $this->errors = [
+                        'request_id' => $formattedBody['request_id'],
+                        'code' => array_key_exists('code', $formattedBody) ? $formattedBody['code'] : '',
+                        'error' => array_key_exists('error', $formattedBody) ? $formattedBody['error'] : '',
+                        'message' => array_key_exists('message', $formattedBody) ? $formattedBody['message'] : '',
+                    ];
+                }
+            }
+        }
+
+        return $this->lastResponse;
+    }
+
+    /**
+     * Reset state prior to request
+     *
+     * @param string $verb
+     * @param string $endpoint
+     * @param string $url
+     * @param int $timeout
+     * @return array
+     */
+    private function prepareStateForRequest(string $verb, string $endpoint, string $url, int $timeout): array
+    {
+        $this->httpError = '';
+        $this->errors = [];
+
+        $this->requestSuccessful = false;
+
+        $this->lastResponse = [
+            'headers' => null, // array of details from curl_getinfo()
+            'body' => null, // content of the response
+        ];
+
+        $this->lastRequest = [
+            'method' => strtoupper($verb),
+            'endpoint' => $endpoint,
+            'url' => $url,
+            'body' => '',
+            'timeout' => $timeout,
+        ];
+
+        return $this->lastResponse;
+    }
+
+    /**
+     * Parse header string and return array of headers
+     *
+     * @param object $headerString
+     * @return array
+     */
+    private function getHeadersAsArray(object $headerString): array
+    {
+        $headers = [];
+        foreach ($headerString->getHeaders() as $name => $values) {
+            $headers[$name] = implode(', ', $values);
+        }
+
+        return $headers;
+    }
+
+    /**
+     *  Format Response
+     *
+     * @param array $response
+     * @return bool|mixed
+     */
+    private function formatResponse(array $response)
+    {
+        if (!empty($response['body'])) {
+            return json_decode($response['body'], true);
+        }
+
+        return false;
+    }
+
+    /**
+     * Get Magento Version
+     *
+     * @return string
+     */
+    private function getMagentoVersion(): string
+    {
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $productMetadata = $objectManager->get(\Magento\Framework\App\ProductMetadataInterface::class);
+
+        return $productMetadata->getVersion();
+    }
+
+    /**
+     * Get Magento Edition
+     *
+     * @return string
+     */
+    private function getMagentoEdition(): string
+    {
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $productMetadata = $objectManager->get(\Magento\Framework\App\ProductMetadataInterface::class);
+
+        return $productMetadata->getEdition();
+    }
+}

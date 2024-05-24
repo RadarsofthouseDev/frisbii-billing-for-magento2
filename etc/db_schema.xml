@@ -1,0 +1,69 @@
+<?xml version="1.0" ?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="radarsofthouse_billwerkplus_customer_subs" resource="default" engine="innodb" comment="Billwerkplus Customer Subscription Table">
+        <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Entity Id"/>
+        <column name="customer_id" nullable="true" xsi:type="int" identity="false" comment="Customer Entity Id"/>
+        <column name="customer_handle" nullable="true" xsi:type="varchar" length="255" comment="Billwerk+ Customer Id" />
+        <column name="subscription_handle" nullable="true" xsi:type="varchar" length="255" comment="Billwerk+ Subscription Id" />
+        <column name="status" nullable="true" xsi:type="varchar" length="255" comment="Billwerk+ Subscription Status" />
+        <column name="order_id" nullable="true" xsi:type="int" comment="Order Id" identity="false"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <index referenceId="RADARSOFTHOUSE_BILLWERKPLUS_CUSTOMER_SUBS_CUSTOMER_ID" indexType="btree">
+            <column name="customer_id"/>
+        </index>
+        <index referenceId="RADARSOFTHOUSE_BILLWERKPLUS_CUSTOMER_SUBS_CUSTOMER_HANDLE" indexType="btree">
+            <column name="customer_handle"/>
+        </index>
+        <index referenceId="RADARSOFTHOUSE_BILLWERKPLUS_CUSTOMER_SUBS_SUBSCRIPTION_HANDLE" indexType="btree">
+            <column name="subscription_handle"/>
+        </index>
+    </table>
+    <table name="radarsofthouse_billwerkplus_customer_subscriber" resource="default" engine="innodb" comment="Billwerkplus Customer Subscriber Table">
+        <column xsi:type="int" name="customer_id" padding="10" unsigned="true" nullable="false" identity="false" comment="Customer Entity Id"/>
+        <column name="customer_handle" nullable="true" xsi:type="varchar" comment="customer_handle" length="255"/>
+        <column name="subscription_active" nullable="true" xsi:type="int" comment="subscription is active" default="0" identity="false"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="customer_id"/>
+        </constraint>
+        <index referenceId="RADARSOFTHOUSE_BILLWERKPLUS_CUSTOMER_SUBS_ACTIVE_CUSTOMER_HANDLE" indexType="btree">
+            <column name="customer_handle"/>
+        </index>
+    </table>
+    <table name="radarsofthouse_billwerkplus_session" resource="default" engine="innodb" comment="ฺBillwerkplus Session Table">
+        <column xsi:type="int" name="session_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Entity Id"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="session_id"/>
+        </constraint>
+        <column name="handle" nullable="false" xsi:type="varchar" comment="Session handle" length="255"/>
+        <column name="order_type" nullable="false" xsi:type="varchar" comment="Order type." length="255"/>
+        <column name="order_id" nullable="false" xsi:type="int" comment="MG order entity id" identity="false"/>
+        <column name="order_increment_id" nullable="true" xsi:type="varchar" comment="order_increment_id" length="255"/>
+        <column name="created" nullable="true" xsi:type="timestamp" comment="created"/>
+    </table>
+    <table name="radarsofthouse_billwerkplus_status" resource="default" engine="innodb" comment="radarsofthouse_billwerkpluss_status Table">
+        <column xsi:type="int" name="status_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Entity Id"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="status_id"/>
+        </constraint>
+        <column name="order_id" nullable="true" xsi:type="int" comment="order_id" identity="false"/>
+        <column name="order_increment_id" nullable="true" xsi:type="varchar" comment="order_increment_id" length="255"/>
+        <column name="order_type" nullable="true" xsi:type="varchar" comment="order_type" length="255"/>
+        <column name="status" nullable="true" xsi:type="varchar" comment="status" length="255"/>
+        <column name="masked_card_number" nullable="true" xsi:type="varchar" comment="masked_card_number" length="255"/>
+        <column name="fingerprint" nullable="true" xsi:type="varchar" comment="fingerprint" length="255"/>
+        <column name="card_type" nullable="true" xsi:type="varchar" comment="card_type" length="255"/>
+        <column name="email" nullable="true" xsi:type="varchar" comment="email" length="255"/>
+    </table>
+    <table name="sales_order">
+        <column name="billwerk_order_type" nullable="true" xsi:type="varchar" comment="Billwerk+ Order Type" length="255"/>
+        <column name="billwerk_sub_handle" nullable="true" xsi:type="varchar" comment="Billwerk+ Subscription Handle" length="255"/>
+        <column name="billwerk_sub_inv_handle" nullable="true" xsi:type="varchar" comment="Billwerk+ Subscription Invoice Handle" length="255"/>
+    </table>
+    <table name="sales_order_grid">
+        <column name="billwerk_order_type" nullable="true" xsi:type="varchar" comment="Billwerk+ Order Type" length="255"/>
+        <column name="billwerk_sub_handle" nullable="true" xsi:type="varchar" comment="Billwerk+ Subscription Handle" length="255"/>
+        <column name="billwerk_sub_inv_handle" nullable="true" xsi:type="varchar" comment="Billwerk+ Subscription Invoice Handle" length="255"/>
+    </table>
+</schema>

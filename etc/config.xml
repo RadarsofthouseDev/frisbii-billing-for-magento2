@@ -1,0 +1,38 @@
+<?xml version="1.0" ?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <payment>
+            <billwerkplus_subscription>
+                <active>0</active>
+                <title>Payment by Billwerk+</title>
+                <instructions>Billwerk+ payment</instructions>
+                <private_key_test/>
+                <private_key/>
+                <api_key_type>0</api_key_type>
+                <auto_capture>0</auto_capture>
+                <send_order_line>1</send_order_line>
+                <send_order_email_when_success>1</send_order_email_when_success>
+                <order_status_before_payment>pending</order_status_before_payment>
+                <order_status_after_payment>processing</order_status_after_payment>
+                <auto_create_invoice>1</auto_create_invoice>
+                <cancel_order_after_payment_cancel>0</cancel_order_after_payment_cancel>
+                <order_confirmation_email_template>billwerk_subscription_order_confirmation</order_confirmation_email_template>
+                <allowspecific/>
+                <specificcountry/>
+                <allowwed_payment>card,dankort,visa,visa_dk,visa_elec,mc,amex,mobilepay_subscriptions,vipps_recurring,diners,maestro,laser,discover,jcb,china_union_pay,ffk,applepay,bank_transfer,cash,other</allowwed_payment>
+                <payment_icons>american-express,dankort,diners-club-international,discover,forbrugsforeningen,jcb,maestro,mastercard,mobilepay,unionpay,visa,visa-electron,applepay,vipps</payment_icons>
+                <payment_link>payment_reepay_payment_payment_link</payment_link>
+                <sort_order>0</sort_order>
+                <enable_self_pause>1</enable_self_pause>
+                <enable_self_cancel>1</enable_self_cancel>
+                <order_status_after_renewal>complete</order_status_after_renewal>
+                <auto_create_invoice_after_renewal>1</auto_create_invoice_after_renewal>
+                <send_order_email_when_renewal>1</send_order_email_when_renewal>
+                <order_renewal_email_template>billwerk_subscription_renewal</order_renewal_email_template>
+                <model>BillwerkPlusSubscriptionFacade</model>
+                <can_use_internal>1</can_use_internal>
+                <can_use_checkout>1</can_use_checkout>
+            </billwerkplus_subscription>
+        </payment>
+    </default>
+</config>

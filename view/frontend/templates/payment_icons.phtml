@@ -1,0 +1,17 @@
+<?php
+/** @var \Radarsofthouse\BillwerkPlusSubscription\Block\Paymenticons $block */
+$paymentIcons = $block->getPaymentIcons();
+?>
+<?php if (count($paymentIcons) > 0): ?>
+    <?php foreach ($paymentIcons as $paymentIcon): ?>
+        <?php
+        $fieldUrl = 'Radarsofthouse_BillwerkPlusSubscription::img/payment_icons/'.$paymentIcon.'.png';
+        $imageUrl = $block->getViewFileUrl($fieldUrl);
+        ?>
+        <img class="billwerkplus-payment-icon"
+             src="<?= $block->escapeUrl($imageUrl); ?>" alt="<?= $block->escapeUrl($paymentIcon) ?>">
+    <?php endforeach; ?>
+<?php endif; ?>
+
+
+

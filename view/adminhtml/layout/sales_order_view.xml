@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="admin-2columns-left"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <!--add custom block -->
+        <referenceBlock name="order_additional_info">
+            <block class="Radarsofthouse\BillwerkPlusSubscription\Block\Adminhtml\Order\View" name="sales_custom_view"
+                   template="Radarsofthouse_BillwerkPlusSubscription::order/view.phtml"/>
+        </referenceBlock>
+
+    </body>
+</page>

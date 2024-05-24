@@ -1,0 +1,123 @@
+<?php
+/** @var \Radarsofthouse\BillwerkPlusSubscription\Block\Customer\Subscriptionview $block */
+$subscription = $block->getSubscription();
+if ($subscription['payment_method_added']) {
+    foreach ($subscription['active_payment_methods'] as $activePaymentMethodId) {
+        $paymentMethods[$activePaymentMethodId] = $block->getPaymentMethod($activePaymentMethodId);
+    }
+}
+//dump($subscription);
+?>
+
+<div class="table-wrapper billwerkplus-subscription-details">
+    <table class="data table subscription_details">
+        <tbody>
+        <tr>
+            <td><?php echo __("Status"); ?></td>
+            <td><?php echo __($subscription['is_cancelled'] ?
+                    'Cancel' : ucfirst(str_replace('_', ' ',$subscription['state']))); ?></td>
+        </tr>
+        <tr>
+            <td><?php echo __("Plan"); ?></td>
+            <td><?php echo $block->getPlanName($subscription['plan']); ?></td>
+        </tr>
+        <tr>
+            <td><?php echo __("Start Payment date"); ?></td>
+            <td><?php echo $block->dateFormat($subscription['first_period_start']); ?></td>
+        </tr>
+        <tr>
+            <td><?php echo __("Last Payment date"); ?></td>
+            <td><?php echo $block->dateFormat($subscription['current_period_start']); ?></td>
+        </tr>
+        <?php if(!$subscription['is_cancelled']): ?>
+        <tr>
+            <td><?php echo __("Next Payment date"); ?></td>
+            <td><?php echo $block->dateFormat($subscription['next_period_start']); ?></td>
+        </tr>
+        <?php endif; ?>
+        <?php if($subscription['is_cancelled'] && $subscription['state'] == 'active'): ?>
+            <tr>
+                <td><?php echo __("Expire date"); ?></td>
+                <td><?php echo $block->dateFormat($subscription['expires']); ?></td>
+            </tr>
+        <?php endif; ?>
+        <tr>
+            <td><?php echo __("Payment methods"); ?></td>
+            <td></td>
+        </tr>
+        <?php if(!empty($paymentMethods)):
+            foreach ($paymentMethods as $paymentMethod):
+                ?>
+                <tr>
+                    <td><?php echo $paymentMethod[$paymentMethod['payment_type']]['masked_card']; ?></td>
+                    <td><?php echo $paymentMethod['payment_type']?></td>
+                </tr>
+            <?php endforeach; ?>
+        <?php endif; ?>
+        <tr>
+            <td><?php echo __("Action"); ?></td>
+            <td>
+                <?php if($subscription['state'] == 'active'
+                    && !$subscription['is_cancelled'] && $block->enablePause()): ?>
+                <form action="<?php echo $block->getUrl('billwerkplussubscription/subscription/action') ?>"
+                      method="post" style="display: inline-block;">
+                    <input type="hidden" name="form_key"  value="<?php echo $block->getFormKey();?>">
+                    <input type="hidden" name="handle" value="<?php echo $subscription['handle']; ?>">
+                    <input type="hidden" name="action" value="on_hold">
+                    <button type="submit" title="Pause" class="action primary">
+                        <span>Pause</span>
+                    </button>
+                </form>
+                <?php endif; ?>
+                <?php if($subscription['state'] == 'on_hold' && $block->enablePause()): ?>
+                <form action="<?php echo $block->getUrl('billwerkplussubscription/subscription/action') ?>"
+                      method="post" style="display: inline-block;">
+                    <input type="hidden" name="form_key"  value="<?php echo $block->getFormKey();?>">
+                    <input type="hidden" name="handle" value="<?php echo $subscription['handle']; ?>">
+                    <input type="hidden" name="action" value="reactivate">
+                    <button type="submit" title="Activate" class="action primary">
+                        <span>Activate</span>
+                    </button>
+                </form>
+                <?php endif; ?>
+                <?php if($subscription['state'] == 'active'
+                    && !$subscription['is_cancelled'] && $block->enableCancel()): ?>
+                <form action="<?php echo $block->getUrl('billwerkplussubscription/subscription/action') ?>"
+                      method="post" style="display: inline-block;">
+                    <input type="hidden" name="form_key"  value="<?php echo $block->getFormKey();?>">
+                    <input type="hidden" name="handle" value="<?php echo $subscription['handle']; ?>">
+                    <input type="hidden" name="action" value="cancel">
+                    <button type="submit" title="Cancel" class="action primary">
+                        <span>Cancel</span>
+                    </button>
+                </form>
+                <?php endif; ?>
+                <?php if($subscription['is_cancelled'] && $block->enableCancel()): ?>
+                <form action="<?php echo $block->getUrl('billwerkplussubscription/subscription/action') ?>"
+                      method="post" style="display: inline-block;">
+                    <input type="hidden" name="form_key"  value="<?php echo $block->getFormKey();?>">
+                    <input type="hidden" name="handle" value="<?php echo $subscription['handle']; ?>">
+                    <input type="hidden" name="action" value="uncancel">
+                    <button type="submit" title="Restart" class="action primary">
+                        <span>Restart</span>
+                    </button>
+                </form>
+                <?php endif; ?>
+                <?php if(in_array($subscription['state'], ['active', 'pending']) && !$subscription['is_cancelled']): ?>
+                <form action="<?php echo $block->getUrl('billwerkplussubscription/subscription/action') ?>"
+                      method="post" style="display: inline-block;">
+                    <input type="hidden" name="form_key" value="<?php echo $block->getFormKey();?>">
+                    <input type="hidden" name="handle" value="<?php echo $subscription['handle']; ?>">
+                    <input type="hidden" name="action" value="add_payment">
+                    <button type="submit" title="<?php echo $subscription['payment_method_added'] ?
+                        'Change Payment' : 'Add payment'?>" class="action primary">
+                        <span><?php echo $subscription['payment_method_added'] ?
+                                'Change Payment' : 'Add payment'?></span>
+                    </button>
+                </form>
+                <?php endif; ?>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>

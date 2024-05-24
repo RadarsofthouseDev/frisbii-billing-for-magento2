@@ -1,0 +1,45 @@
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento:Ui:etc/ui_configuration.xsd">
+<!--    <columns name="customer_columns" class="Magento\Customer\Ui\Component\Listing\Columns">-->
+    <columns name="customer_columns">
+<!--        <column name="billwerk_customer_handle" class="Radarsofthouse\BillwerkPlusSubscription\Ui\Component\Listing\Column\CustomerHandle">-->
+<!--            <argument name="data" xsi:type="array">-->
+<!--                <item name="config" xsi:type="array">-->
+<!--                    <item name="sortOrder" xsi:type="number">100</item>-->
+<!--                    <item name="filter" xsi:type="string">text</item>-->
+<!--                    <item name="sorting" xsi:type="string">asc</item>-->
+<!--                    <item name="label" xsi:type="string" translate="true">Customer Handle</item>-->
+<!--                </item>-->
+<!--            </argument>-->
+<!--        </column>-->
+        <column name="billwerk_customer_handle" class="Radarsofthouse\BillwerkPlusSubscription\Ui\Component\Listing\Column\CustomerHandle">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
+                    <item name="filter" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Subscriber Handle</item>
+                    <item name="sortOrder" xsi:type="number">100</item>
+                </item>
+            </argument>
+        </column>
+        <column name="subscription_active" class="Radarsofthouse\BillwerkPlusSubscription\Ui\Component\Listing\Column\SubscriptionStatus">
+            <argument name="data" xsi:type="array">
+<!--                <item name="options" xsi:type="object">Radarsofthouse\BillwerkPlusSubscription\Model\Config\Source\SubStatus</item>-->
+                <item name="config" xsi:type="array">
+<!--                    <item name="filter" xsi:type="string">select</item>-->
+                    <!--<item name="options" xsi:type="array">
+                        <item name="0" xsi:type="string" translate="true">Inactive</item>
+                        <item name="1" xsi:type="string" translate="true">Active</item>
+                    </item>-->
+                    <item name="label" xsi:type="string" translate="true">Subscriber Status</item>
+                    <item name="sortOrder" xsi:type="number">100</item>
+                </item>
+            </argument>
+            <settings>
+                <options class="Radarsofthouse\BillwerkPlusSubscription\Model\Config\Source\SubStatus"/>
+                <filter>select</filter>
+                <dataType>select</dataType>
+                <label translate="true">Subscriber Status</label>
+            </settings>
+        </column>
+    </columns>
+</listing>

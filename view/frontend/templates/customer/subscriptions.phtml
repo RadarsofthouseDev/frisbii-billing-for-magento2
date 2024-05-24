@@ -1,0 +1,66 @@
+<?php
+/** @var \Radarsofthouse\BillwerkPlusSubscription\Block\Customer\Subscriptions $block */
+$subscriptions = $block->getSubscriptions();
+
+//dump($subscriptions);
+
+if (empty($subscriptions)): ?>
+    <div class="message info empty">
+        <span><?php echo __("You do not have any active subscriptions."); ?></span>
+    </div>
+<?php else: ?>
+    <div class="table-wrapper stripe-subscriptions">
+        <table class="data table table-order-items history" id="my-orders-table">
+            <caption class="table-caption"><?php echo __("Subscriptions"); ?></caption>
+            <thead>
+            <tr>
+                <th scope="col" class="col subscription-id"><?php echo __("Subscription ID"); ?></th>
+                <th scope="col" class="col status"><?php echo __("Plan"); ?></th>
+                <th scope="col" class="col status"><?php echo __("Status"); ?></th>
+                <th scope="col" class="col next-payment"><?php echo __("Next Payment"); ?></th>
+                <th scope="col" class="col amount"><?php echo __("Amount"); ?></th>
+                <th scope="col" class="col action"><?php echo __("Actions"); ?></th>
+            </tr>
+            </thead>
+            <tbody>
+            <?php foreach ($subscriptions as $subscription): ?>
+                <tr class="<?php echo $subscription['handle']; ?>">
+                    <td data-th="<?php echo __("Subscription ID")?>" class="col subscription-id">
+                        <a href="<?php echo $block->getUrl('billwerkplussubscription/customer/subscriptionview',
+                            ['handle' => $subscription['handle']]) ?>">
+                            <?php echo $subscription['handle']; ?>
+                        </a>
+                    </td>
+                    <td data-th="<?php echo __("Name"); ?>" class="col status">
+                        <div class="subscription-status">
+                            <?php echo $block->getPlanName($subscription['plan']); ?>
+                        </div>
+                    </td>
+                    <td data-th="<?php echo __("Status"); ?>" class="col status">
+                        <div class="subscription-status">
+                            <?php echo __($subscription['is_cancelled'] ?
+                                'Cancel' : ucfirst(str_replace('_', ' ',$subscription['state']))); ?>
+                        </div>
+                    </td>
+                    <td data-th="<?php echo __("Next Payment"); ?>" class="col next-payment">
+                        <div class="subscription-next-payment">
+                            <?php echo $block->dateFormat($subscription['next_period_start']); ?>
+                        </div>
+                    </td>
+                    <td data-th="<?php echo __("Amount"); ?>" class="col amount">
+                        <div class="subscription-amount">
+                            <?php echo $block->getPlanPrice($subscription['plan']); ?>
+                        </div>
+                    </td>
+                    <td data-th="Actions" class="col">
+                        <a href="<?php echo $block->getUrl('billwerkplussubscription/customer/subscriptionview',
+                            ['handle' => $subscription['handle']]) ?>" class="action view">
+                            <span>View</span>
+                        </a>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+<?php endif; ?>

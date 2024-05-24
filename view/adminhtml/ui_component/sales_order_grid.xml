@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <columns name="sales_order_columns">
+        <!-- Existing columns -->
+        <column name="billwerk_order_type">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filter" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Billwerk+ Order Type</item>
+                </item>
+            </argument>
+        </column>
+        <actionsColumn name="billwerk_sub_handle" class="Radarsofthouse\BillwerkPlusSubscription\Ui\Component\Listing\Column\SubscriptionHandle">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filter" xsi:type="string">text</item>
+                    <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
+                    <item name="label" xsi:type="string" translate="true">Billwerk+ Subscription Handle</item>
+                </item>
+            </argument>
+        </actionsColumn>
+    </columns>
+</listing>

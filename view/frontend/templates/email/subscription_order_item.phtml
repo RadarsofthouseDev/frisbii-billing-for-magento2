@@ -1,0 +1,193 @@
+Boyd test <?php echo $this->getOrderId(); ?>
+<?php
+/** @var $block \Magento\Sales\Block\Order\Email\Items */
+$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+$_order = $objectManager->create('Magento\Sales\Model\Order')->load($this->getOrderId());
+$priceCurrency = $objectManager->create('Magento\Framework\Pricing\PriceCurrencyInterface');
+$productRepository = $objectManager->get('\Magento\Catalog\Api\ProductRepositoryInterface');
+?>
+<?php if ($_order) : ?>
+    <?php $_items = $_order->getAllItems(); ?>
+    <table class="email-items">
+        <thead>
+        <tr>
+            <th class="item-info">
+                <?= __('Items') ?>
+            </th>
+            <th class="item-qty">
+                <?= __('Qty') ?>
+            </th>
+            <th class="item-price">
+                <?= __('Price') ?>
+            </th>
+        </tr>
+        </thead>
+        <!-- Product item list --->
+        <tbody>
+        <?php
+        $discount_total = 0;
+        $tax_total = 0;
+        $sub_total = 0;
+        foreach ($_items as $_item) : ?>
+            <?php if (!$_item->getParentItem()) : ?>
+                <tr>
+                    <td class="item-info">
+                        <p class="product-name"><?php echo $_item->getName(); ?> </p>
+                        <p class="sku"><?=__('SKU')?>: <?= $_item->getSku() ?></p>
+
+                        <?php
+                        $itemOptions = $_item->getProductOptions();
+                        if (array_key_exists('attributes_info', $itemOptions)) : ?>
+                            <dl class="item-options">
+                                <?php foreach ($itemOptions['attributes_info'] as $option) : ?>
+                                    <dt><strong><em><?= $option['label'] ?></em></strong></dt>
+                                    <dd><?=nl2br($option['value']) ?></dd>
+                                <?php endforeach; ?>
+                            </dl>
+                        <?php endif; ?>
+                    </td>
+                    <td class="item-qty"><?= (float) $_item->getQtyOrdered() ?></td>
+                    <td class="item-price"><?php
+                        $product = $productRepository->get($_item->getSku());
+                        $subEnabled = $product->getBillwerkSubEnabled();
+                        $planHandle = $product->getBillwerkSubPlan();
+                        if($subEnabled && $planHandle){
+                            echo $priceCurrency->format(0, false);
+                        }else{
+                            echo $priceCurrency->format($_item->getPrice(), false);
+                            $tax_total += $_item->getTaxAmount();
+                            $sub_total += $_item->getPrice();
+                            $discount_total += ($_item->getOriginalPrice() - $_item->getPrice());
+                        }
+                        ?>
+                    </td>
+                </tr>
+            <?php endif; ?>
+        <?php endforeach;
+        /*** Prepare order total data ***/
+        $order_totals = [];
+        $order_totals ['subtotal'] = new \Magento\Framework\DataObject(
+            ['code' => 'subtotal', 'value' => $sub_total, 'label' => __('Subtotal')]
+        );
+
+        /**
+         * Add discount
+         */
+        if ($discount_total > 0) {
+            if ($_order->getDiscountDescription()) {
+                $discountLabel = __('Discount (%1)', $_order->getDiscountDescription());
+            } else {
+                $discountLabel = __('Discount');
+            }
+            $order_totals ['discount'] = new \Magento\Framework\DataObject(
+                [
+                    'code' => 'discount',
+                    'field' => 'discount_amount',
+                    'value' => ($discount_total*-1),
+                    'label' => $discountLabel,
+                ]
+            );
+        }
+
+        /**
+         * Add shipping
+         */
+        if (!$_order->getIsVirtual() && ((double)$_order->getShippingAmount() || $_order->getShippingDescription())) {
+            $label = __('Shipping & Handling');
+            if ($_order->getCouponCode() && !isset($order_totals ['discount'])) {
+                $label = __('Shipping & Handling (%1)', $_order->getCouponCode());
+            }
+
+            $order_totals ['shipping'] = new \Magento\Framework\DataObject(
+                [
+                    'code' => 'shipping',
+                    'field' => 'shipping_amount',
+                    'value' => $_order->getShippingAmount(),
+                    'label' => $label,
+                ]
+            );
+        }
+        if($tax_total > 0){
+            $order_totals ['tax_total'] = new \Magento\Framework\DataObject(
+                [
+                    'code' => 'tax_total',
+                    'field' => 'tax_total',
+                    'strong' => true,
+                    'value' => $tax_total,
+                    'label' => __('Tax'),
+                ]
+            );
+        }
+        $order_totals ['grand_total'] = new \Magento\Framework\DataObject(
+            [
+                'code' => 'grand_total',
+                'field' => 'grand_total',
+                'strong' => true,
+                'value' => (($sub_total - $discount_total) + $_order->getShippingAmount() + $tax_total),
+                'label' => __('Grand Total'),
+            ]
+        );
+
+        /**
+         * Base grandtotal
+         */
+        /*if ($_order->isCurrencyDifferent()) {
+            $order_totals ['base_grandtotal'] = new \Magento\Framework\DataObject(
+                [
+                    'code' => 'base_grandtotal',
+                    'value' => 0,
+                    'label' => __('Grand Total to be Charged'),
+                    'is_formated' => true,
+                ]
+            );
+        }*/
+
+        ?>
+        </tbody>
+
+        <!-- Order totals detail --->
+        <tfoot class="order-totals">
+            <?php foreach ($order_totals as $_code => $_total) : ?>
+                <tr class="<?= $_code ?>">
+                    <th colspan="2" scope="row">
+                        <?php if ($_total->getStrong()) : ?>
+                            <strong><?= $_total->getLabel() ?></strong>
+                        <?php else : ?>
+                            <?= $_total->getLabel() ?>
+                        <?php endif ?>
+                    </th>
+                    <td data-th="<?=$_total->getLabel() ?>">
+                        <?php if ($_total->getStrong()) : ?>
+                            <strong><?=$priceCurrency->format($_total->getValue(), false);?></strong>
+                        <?php else : ?>
+                            <?=$priceCurrency->format($_total->getValue(), false);?>
+                        <?php endif?>
+                    </td>
+                </tr>
+            <?php endforeach?>
+        </tfoot>
+    </table>
+
+    <!-- Gift Message --->
+    <?php if ($this->helper(\Magento\GiftMessage\Helper\Message::class)
+            ->isMessagesAllowed('order', $_order, $_order->getStore())
+        && $_order->getGiftMessageId()
+    ) : ?>
+        <?php $_giftMessage = $this->helper(\Magento\GiftMessage\Helper\Message::class)
+            ->getGiftMessage($_order->getGiftMessageId()); ?>
+        <?php if ($_giftMessage) : ?>
+            <br>
+            <table class="message-gift">
+                <tr>
+                    <td>
+                        <h3><?= __('Gift Message for this Order') ?></h3>
+                        <strong><?= __('From:') ?></strong> <?= $_giftMessage->getSender() ?>
+                        <br><strong><?= __('To:') ?></strong> <?= $_giftMessage->getRecipient() ?>
+                        <br><strong><?= __('Message:') ?></strong>
+                        <br><?= $_giftMessage->getMessage() ?>
+                    </td>
+                </tr>
+            </table>
+        <?php endif; ?>
+    <?php endif; ?>
+<?php endif; ?>

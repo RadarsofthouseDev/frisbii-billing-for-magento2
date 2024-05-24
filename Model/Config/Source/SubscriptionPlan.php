@@ -1,0 +1,95 @@
+<?php
+/**
+ * Copyright © radarsofthouse.dk All rights reserved.
+ * See COPYING.txt for license details.
+ */
+declare(strict_types=1);
+
+namespace Radarsofthouse\BillwerkPlusSubscription\Model\Config\Source;
+
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Store\Model\StoreManagerInterface;
+use Radarsofthouse\BillwerkPlusSubscription\Helper\Data;
+use Radarsofthouse\BillwerkPlusSubscription\Helper\Plan;
+
+class SubscriptionPlan extends \Magento\Eav\Model\Entity\Attribute\Source\AbstractSource
+{
+
+    /**
+     * @var Plan
+     */
+    private $planHelper;
+    /**
+     * @var Data
+     */
+    private $helper;
+    /**
+     * @var StoreManagerInterface
+     */
+    private $storeManager;
+
+    /**
+     * @param Data $helper
+     * @param Plan $planHelper
+     * @param StoreManagerInterface $storeManager
+     */
+    public function __construct(
+        Data $helper,
+        Plan $planHelper,
+        StoreManagerInterface $storeManager
+    ) {
+        $this->helper = $helper;
+        $this->planHelper = $planHelper;
+        $this->storeManager = $storeManager;
+    }
+
+    /**
+     * Get Current Store ID
+     *
+     * @return int|void
+     */
+    private function getCurrenStoreId()
+    {
+        $storeId = null;
+        try {
+            $currentStore = $this->storeManager->getStore();
+            $storeId = $currentStore->getId();
+        } catch (NoSuchEntityException $e) {
+            return;
+        }
+        return $storeId;
+    }
+
+    /**
+     * Return Reepay payment key types
+     *
+     * @return array
+     */
+    public function toOptionArray()
+    {
+        $options = [['label' => ' ', 'value' => ''],];
+        $storeId = $this->getCurrenStoreId();
+        $apiKey = $this->helper->getApiKey($storeId);
+        $plans = $this->planHelper->getList($apiKey);
+
+        if (!empty($plans)) {
+            foreach ($plans as $plan) {
+                $options[] =['label' => $plan['name'], 'value' => $plan['handle']];
+            }
+        }
+        return $options;
+    }
+
+    /**
+     * Get All Options
+     *
+     * @return array|\string[][]|null
+     */
+    public function getAllOptions()
+    {
+        if ($this->_options === null) {
+            $this->_options = $this->toOptionArray();
+        }
+        return $this->_options;
+    }
+}

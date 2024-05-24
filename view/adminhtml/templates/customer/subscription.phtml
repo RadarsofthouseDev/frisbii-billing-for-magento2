@@ -1,0 +1,58 @@
+<?php
+/* @var $block \Radarsofthouse\BillwerkPlusSubscription\Block\Adminhtml\Customer\Edit\Tab\View\Subscription */
+$handle = $block->getSubscriberHandle();
+$subscriptions = $block->getSubscriptions();
+$adminBillPlusLink = "https://admin.billwerk.plus/#/rp/";
+?>
+<?php if ($handle):
+    $customerLink = $adminBillPlusLink."customers/customers/customer/".$handle; ?>
+<div class="fieldset-wrapper-title">
+    <span class="title"><?php echo __('Subscriber handle') ?>:
+        <a target="_blank" href="<?=$customerLink?>"><?php echo $handle; ?></a>
+    </span>
+</div>
+<div id="view_subscription_grid" data-grid-id="view_subscription_grid">
+    <div class="admin__data-grid-wrap admin__data-grid-wrap-static">
+        <table class="data-grid" id="view_subscription_grid_table">
+            <thead>
+            <tr>
+                <th class="data-grid-th  no-link col-handle"><span><?php echo __('Subscription handle') ?></span></th>
+                <th class="data-grid-th  no-link col-plan"><span><?php echo __('Plan handle') ?></span></th>
+                <th class="data-grid-th  no-link col-state"><span><?php echo __('Subscription status') ?></span></th>
+            </tr>
+            </thead>
+            <tbody>
+            <?php
+            if ($subscriptions):
+                foreach ($subscriptions as $subscription):
+                    $handleLink = $adminBillPlusLink."subscriptions/subscription/".$subscription['handle'];
+                    $planLink = $adminBillPlusLink."config/plans/edit/".$subscription['plan'];
+                    ?>
+                    <tr title="">
+                        <td class="col-handle">
+                            <a target="_blank" href="<?=$handleLink?>">
+                                <?php echo $subscription['handle'] ?>
+                            </a>
+                        </td>
+                        <td class="col-plan">
+                            <a target="_blank" href="<?=$planLink?>">
+                                <?php echo $subscription['plan'] ?>
+                            </a>
+                        </td>
+                        <td class="col-state">
+                            <?php echo $subscription['is_cancelled'] ? 'Cancel' :
+                                ucfirst(str_replace('_', ' ',$subscription['state'])); ?>
+                        </td>
+                    </tr>
+                <?php endforeach;
+            else:
+                ?>
+                <tr class="data-grid-tr-no-data even">
+                    <td class="empty-text" colspan="11"><?php echo __('We couldn\'t find any records.') ?></td>
+                </tr>
+            <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+<?php endif; ?>

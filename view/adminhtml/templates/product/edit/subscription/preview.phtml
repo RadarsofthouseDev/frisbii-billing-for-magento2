@@ -1,0 +1,214 @@
+<?php
+/** @var $block Radarsofthouse\BillwerkPlusSubscription\Block\Adminhtml\Catalog\Product\Edit\Tab\Subscription\Preview */
+$plans = $block->getPlans();
+?>
+<div class="admin__field-label"></div>
+<div class="admin__field-control">
+        <div>
+            <?php foreach ($plans as $plan): ?>
+                <?php $plan = $block->prepare($plan); ?>
+                <table style="display: none; max-width: 40vw; /*margin-left: auto; margin-right: auto;*/"
+                       id="<?php echo $plan['handle']; ?>" class="data-grid sub-plan">
+                    <thead>
+                    <tr>
+                        <th colspan="2" class="data-grid-th  no-link"><?php echo $plan['name'] ?></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr title="">
+                        <td class="col-topic"><?php echo __('Price(Incl. VAT)') ?></td>
+                        <td class="col-value"><?php echo $plan['price'] . ' ' . $plan['currency']; ?></td>
+                    </tr>
+                    <tr title="">
+                        <td class="col-topic"><?php echo __('Schedule type') ?></td>
+                        <td class="col-value"><?php echo $plan['schedule_type_txt']; ?></td>
+                    </tr>
+
+                    <?php if ($plan['schedule_type'] === 'daily'): ?>
+                        <tr title="">
+                            <td class="col-topic"><?php echo __('Charge every') ?></td>
+                            <td><?php echo $plan['daily'] > 1 ? $plan['daily']. ' ' . __('Days') : __('Day'); ?></td>
+                        </tr>
+                    <?php endif; ?>
+
+                    <?php if ($plan['schedule_type'] === 'month_startdate'): ?>
+                        <tr title="">
+                            <td class="col-topic"><?php echo __('Charge every') ?></td>
+                            <td><?php echo $plan['month_startdate'] > 1 ?
+                                    $plan['month_startdate']. ' ' . __('Months') : __('Month'); ?></td>
+                        </tr>
+                    <?php endif; ?>
+
+                    <?php if ($plan['schedule_type'] === 'month_fixedday'): ?>
+                        <tr title="">
+                            <td class="col-topic"><?php echo __('Charge every') ?></td>
+                            <td><?php echo $plan['month_fixedday']['month'] > 1 ?
+                                    $plan['month_fixedday']['month'] . ' ' . __('Months') : __('Month'); ?></td>
+                            <?php if (!empty($plan['month_fixedday']['day'])): ?>
+                                <td class="col-topic"><?php echo __('On this day of the month') ?></td>
+                                <td><?php echo $plan['month_fixedday']['day']; ?></td>
+                            <?php endif; ?>
+                            <td class="col-topic"><?php echo __('Partial period handling') ?></td>
+                            <td><?php echo $plan['month_lastday']['month'] > 1 ?
+                                    $plan['month_lastday']['month'] . ' ' . __('Months') : __('Month'); ?></td>
+                        </tr>
+                    <?php endif; ?>
+
+                    <?php if ($plan['schedule_type'] === 'month_lastday'): ?>
+                        <tr title="">
+                            <td class="col-topic"><?php echo __('Charge every') ?></td>
+                            <td><?php echo $plan['month_lastday']['month'] > 1 ?
+                                    $plan['month_lastday']['month'] . ' ' . __('Months') : __('Month'); ?></td>
+                            <?php if (!empty($plan['month_lastday']['day'])): ?>
+                            </tr>
+                            <tr title="">
+                                <td class="col-topic"><?php echo __('On this day of the month') ?></td>
+                                <td><?php echo $plan['month_lastday']['day']; ?></td>
+                            <?php endif; ?>
+                        </tr>
+                    <?php endif; ?>
+
+                    <?php if ($plan['schedule_type'] === 'weekly_fixedday'): ?>
+                        <tr title="">
+                            <td class="col-topic"><?php echo __('Charge every') ?></td>
+                            <td><?php echo $plan['weekly_fixedday']['week'] > 1 ?
+                                    $plan['weekly_fixedday']['week']. ' ' . __('Weeks') : __('Week'); ?></td>
+                        </tr>
+                        <tr title="">
+                            <td class="col-topic"><?php echo __('On this day of the week') ?></td>
+                            <td><?php echo $plan['weekly_fixedday']['day']; ?></td>
+                        </tr>
+                    <?php endif; ?>
+
+                    <?php if ($plan['schedule_type'] === 'month_startdate_12'): ?>
+                        <tr title="">
+                            <td class="col-topic"><?php echo __('Charge first day of every') ?></td>
+                            <td><?php echo __('12th Month'); ?></td>
+                        </tr>
+                        <tr title="">
+                            <td class="col-topic"><?php echo __('On this day of the month') ?></td>
+                            <td><?php echo __('1st'); ?></td>
+                        </tr>
+                        <tr title="">
+                            <td class="col-topic"><?php echo __('Fixed months') ?></td>
+                            <td><?php echo __('January'); ?></td>
+                        </tr>
+                    <?php endif; ?>
+
+                    <?php if ($plan['schedule_type'] === 'half_yearly'): ?>
+                        <tr title="">
+                            <td class="col-topic"><?php echo __('Charge first day of every') ?></td>
+                            <td><?php echo __('6th Month'); ?></td>
+                        </tr>
+                        <tr title="">
+                            <td class="col-topic"><?php echo __('On this day of the month') ?></td>
+                            <td><?php echo __('1st'); ?></td>
+                        </tr>
+                        <tr title="">
+                            <td class="col-topic"><?php echo __('Fixed months') ?></td>
+                            <td><?php echo __('January, July'); ?></td>
+                        </tr>
+                    <?php endif; ?>
+
+                    <?php if (in_array($plan['schedule_type'] , ['primo', 'ultimo'])): ?>
+                        <tr title="">
+                            <td class="col-topic"><?php echo __('Charge first day of every') ?></td>
+                            <td><?php echo __('3rd Month'); ?></td>
+                        </tr>
+                        <tr title="">
+                            <td class="col-topic"><?php echo __('Fixed months') ?></td>
+                            <td><?php echo __('January, April, July, October'); ?></td>
+                        </tr>
+                    <?php endif; ?>
+
+                    <tr title="">
+                        <td><?php echo __('Default quantity') ?></td>
+                        <td><?php echo $plan['quantity'] ?? '1'; ?></td>
+                    </tr>
+                    <tr title="">
+                        <td><?php echo __('Minimum contract period') ?></td>
+                        <td><?php echo $plan['contract_periods'] ?? '0' ?></td>
+                    </tr>
+                    <tr title="">
+                        <td><?php echo __('Notice period') ?></td>
+                        <td><?php echo $plan['notice_periods'] ?? '0' ?></td>
+                    </tr>
+                    <tr title="">
+                        <td><?php echo __('Notice period start') ?></td>
+                        <td>
+                            <?php echo(isset($plan['notice_periods_after_current'])
+                            && $plan['notice_periods_after_current'] === true ?
+                                'When the current cancelled period ends' : 'Immediately after cancellation') ?>
+                        </td>
+                    </tr>
+                    <?php if (isset($plan['setup_fee'])): ?>
+                        <tr title="">
+                            <td><?php echo __('Include setup fee') ?></td>
+                            <td><?php echo($plan['setup_fee']['enabled'] ? __('Active') : __('Inactive')) ?></td>
+                        </tr>
+                        <?php if ($plan['setup_fee']['enabled']): ?>
+                            <tr title="">
+                                <td><?php echo __('Setup fee') ?></td>
+                                <td><?php echo $plan['setup_fee']['amount'] .' '. $plan['currency']?></td>
+                            </tr>
+                            <tr title="">
+                                <td><?php echo __('Text') ?></td>
+                                <td><?php echo $plan['setup_fee']['text']; ?></td>
+                            </tr>
+                            <tr title="">
+                                <td><?php echo __('Handling') ?></td>
+                                <td>
+                                    <?php
+                                    if ('first' === $plan['setup_fee']['handling']) {
+                                        echo __('Include setup fee as order line on the first scheduled invoice');
+                                    } elseif ('separate' === $plan['setup_fee']['handling']) {
+                                        echo __('Create a separate invoice for the setup fee');
+                                    } elseif ('separate_conditional' === $plan['setup_fee']['handling']) {
+                                        echo __('Create a separate invoice for the setup fee, 
+                                        if the first invoice is not created in conjunction with the creation');
+                                    }
+                                    ?>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    <?php endif; ?>
+                    <?php if (isset($plan['trial']['type'])): ?>
+                        <tr title="">
+                            <td><?php echo __('Trial period') ?></td>
+                            <td><?php
+                                echo $plan['trial']['type'] != 'customize' ?
+                                    $plan['trial']['type'] : "{$plan['trial']['length']} {$plan['trial']['unit']}"
+                            ?></td>
+                        </tr>
+                    <?php endif; ?>
+                    </tbody>
+                </table>
+            <?php endforeach; ?>
+
+
+        </div>
+    </div>
+
+<script>
+    require([
+        'jquery',
+        'prototype'
+    ], function ($) {
+
+        $("select[name='product[billwerk_sub_plan]']").change(function () {
+            let plan = $(this).val();
+            let elemPlan = `#${plan}`;
+            console.log(plan);
+            console.log(elemPlan);
+            console.log($(elemPlan));
+            $(".sub-plan").hide();
+            if (plan !== '') {
+                $(elemPlan).show();
+            }
+        });
+
+        $(document).ready(function ($) {
+            $("select[name='product[billwerk_sub_plan]']").trigger('change');
+        });
+    });
+</script>

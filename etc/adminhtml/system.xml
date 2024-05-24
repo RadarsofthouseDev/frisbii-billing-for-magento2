@@ -1,0 +1,161 @@
+<?xml version="1.0" ?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="payment" sortOrder="1000" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+            <group id="billwerkplus_subscription" sortOrder="89" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                <label>Billwerk+ Subscription</label>
+                <field id="version"  type="label" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1" translate="label">
+                    <label>Module Version</label>
+                    <frontend_model>Radarsofthouse\BillwerkPlusSubscription\Block\Adminhtml\System\Config\Form\Field\Version</frontend_model>
+                </field>
+                <field id="active" type="select" sortOrder="11" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <label>Enabled</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="title" type="text" sortOrder="12" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <label>Title</label>
+                </field>
+                <field id="instructions" type="textarea" sortOrder="13" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <label>Instructions</label>
+                </field>
+                <field id="private_key_test" type="text" sortOrder="14" showInDefault="1" showInStore="1" showInWebsite="1" translate="label">
+                    <label>Private API Key For Test</label>
+                    <comment>Find your key at https://admin.billwerk.plus under "Developers" >> "API Credentials".
+                    </comment>
+                </field>
+                <field id="private_key" type="text" sortOrder="15" showInDefault="1" showInStore="1" showInWebsite="1" translate="label">
+                    <label>Private API Key For Live</label>
+                    <comment>Find your key at https://admin.billwerk.plus under "Developers" >> "API Credentials".
+                    </comment>
+                </field>
+                <field id="api_key_type" type="select" sortOrder="16" showInDefault="1" showInStore="1" showInWebsite="1" translate="label">
+                    <label>API Key To Use</label>
+                    <comment>Which of the API keys to use.</comment>
+                    <source_model>Radarsofthouse\BillwerkPlusSubscription\Model\Config\Source\Keytype</source_model>
+                </field>
+                <field id="webhook" type="button" sortOrder="17" showInDefault="1" showInWebsite="1" showInStore="0" translate="label comment">
+                    <frontend_model>Radarsofthouse\BillwerkPlusSubscription\Block\Adminhtml\System\Config\Webhook</frontend_model>
+                    <label>Update webhook URL in Billwerk+</label>
+                    <comment>Note: Save config before updating the webhook URL.</comment>
+                </field>
+                <field id="allowspecific" type="allowspecific" sortOrder="18" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <label>Payment from Applicable Countries</label>
+                    <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
+                </field>
+                <field id="specificcountry" type="multiselect" sortOrder="19" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <label>Payment from Specific Countries</label>
+                    <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
+                    <can_be_empty>1</can_be_empty>
+                </field>
+                <field id="allowwed_payment" type="multiselect" sortOrder="20" showInDefault="1" showInStore="1" showInWebsite="1" translate="label" >
+                    <label>Allowed Payment Methods</label>
+                    <comment/>
+                    <source_model>Radarsofthouse\BillwerkPlusSubscription\Model\Config\Source\Allowwedpayment</source_model>
+                    <config_path>payment/billwerkplus_subscription/allowwed_payment</config_path>
+                </field>
+                <field id="payment_icons" type="multiselect" sortOrder="21" showInDefault="1" showInStore="1" showInWebsite="1" translate="label">
+                    <label>Payment icons</label>
+                    <comment/>
+                    <source_model>Radarsofthouse\BillwerkPlusSubscription\Model\Config\Source\Paymenticons</source_model>
+                    <can_be_empty>1</can_be_empty>
+                    <config_path>payment/billwerkplus_subscription/payment_icons</config_path>
+                </field>
+                <field id="log" type="select" sortOrder="89" showInDefault="1" showInStore="1" showInWebsite="1" translate="label">
+                    <label>Log</label>
+                    <comment/>
+                    <source_model>Radarsofthouse\BillwerkPlusSubscription\Model\Config\Source\Log</source_model>
+                    <config_path>payment/billwerkplus_subscription/log</config_path>
+                </field>
+                <field id="sort_order" type="text" sortOrder="90" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <label>Position on the List</label>
+                    <comment>How far down on the list of payment methods should this one appear?</comment>
+                </field>
+<!--Mix Order-->
+                <field id="send_order_line" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="100" translate="label" type="select">
+                    <label>Send order lines</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="auto_capture" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="101" translate="label" type="select">
+                    <label>Auto Capture</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Automatic capture the payment after the user has paid. Payment status in Billwerk+ will
+                        be “Settled”. If set to 'No' the payment status in Billwerk+ will be “Authorized” after the user has paid.</comment>
+                </field>
+                <field id="auto_create_invoice" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="102" translate="label" type="select">
+                    <label>Invoice when Fully Settled</label>
+                    <comment>Create invoice in Magento when full amount is settled in Billwerk+</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="auto_capture">0</field>
+                    </depends>
+                </field>
+                <field id="order_status_after_payment" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="103" translate="label" type="select">
+                    <label>Order Status After Payment</label>
+                    <comment>Status of order after payment has been completed is typically "Processing"."</comment>
+                    <source_model>Magento\Sales\Model\ResourceModel\Order\Status\Collection</source_model>
+                </field>
+                <field id="cancel_order_after_payment_cancel" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="104" translate="label" type="select">
+                    <label>Cancel order if cancel URL is reached</label>
+                    <comment>Change order status to cancelled if the customer is redirected to the cancel-URL.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="send_order_email_when_success" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="105" translate="label" type="select">
+                    <label>Send Order Confirmation</label>
+                    <comment>Send order confirmation Email after payment has been completed.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="order_confirmation_email_template" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="106" translate="label" type="select">
+                    <label>Order Confirmation Email Template</label>
+                    <source_model>Radarsofthouse\BillwerkPlusSubscription\Model\Config\Source\Email\OrderConfirmTemplate</source_model>
+                    <depends>
+                        <field id="send_order_email_when_success">1</field>
+                    </depends>
+                </field>
+                <!--Subscription -->
+                <field id="enable_self_pause" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="110" translate="label" type="select">
+                    <label>Enable Self-service "Pause"</label>
+                    <comment/>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="enable_self_cancel" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="111" translate="label" type="select">
+                    <label>Enable Self-service "Cancel"</label>
+                    <comment/>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="order_status_after_renewal" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="112" translate="label" type="select">
+                    <label>Subscription order status after renewal paid</label>
+                    <comment>Status of subscription order after payment of renewal order has been completed.</comment>
+                    <source_model>Magento\Sales\Model\ResourceModel\Order\Status\Collection</source_model>
+                </field>
+                <field id="auto_create_invoice_after_renewal" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="113" translate="label" type="select">
+                    <label>Invoice when renewal order is paid</label>
+                    <comment>Create invoice in Magento when payment of renewal order has been completed.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="auto_create_shipment_after_renewal" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="114" translate="label" type="select">
+                    <label>Automatic Shipment when renewal order is paid</label>
+                    <comment>Create shipment automatically for non-virtual products.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="send_order_email_when_renewal" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="115" translate="label" type="select">
+                    <label>Send order confirmation for subscription renewal</label>
+                    <comment>Send a new order confirmation Email each time the subscription is renewed.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="order_renewal_email_template" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="116" translate="label" type="select">
+                    <label>Order Renewal Email Template</label>
+                    <source_model>Radarsofthouse\BillwerkPlusSubscription\Model\Config\Source\Email\SubscriptionRenewalTemplate</source_model>
+                    <depends>
+                        <field id="send_order_email_when_renewal">1</field>
+                    </depends>
+                </field>
+                <field id="allow_to_create_customer" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="117" translate="label" type="select">
+                    <label>Enable creation of customer account during checkout</label>
+                    <comment>Set to "No" if Magento standard checkout is not used or if you do not wish to force
+                        guest users to create an account.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

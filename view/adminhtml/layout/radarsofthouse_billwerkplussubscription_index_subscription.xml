@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+
+<layout xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../../../../lib/internal/Magento/Framework/View/Layout/etc/layout_generic.xsd">
+    <container name="root" label="Root">
+        <block name="subscription_tab" class="Radarsofthouse\BillwerkPlusSubscription\Block\Adminhtml\Customer\Edit\Tab\View\Subscription" template="Radarsofthouse_BillwerkPlusSubscription::customer/subscription.phtml" cacheable="false">
+            <arguments>
+                <argument name="css_class" xsi:type="string">admin__field</argument>
+            </arguments>
+        </block>
+    </container>
+</layout>
