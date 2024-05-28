@@ -49,7 +49,7 @@ class Preview extends Widget
     ) {
         $this->helper = $helper;
         $this->planHelper = $planHelper;
-        parent::__construct($context, $data, $jsonHelper, $directoryHelper);
+        parent::__construct($context, $data);
     }
 
     /**

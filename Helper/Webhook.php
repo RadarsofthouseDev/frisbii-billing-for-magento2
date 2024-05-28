@@ -58,7 +58,7 @@ class Webhook extends AbstractHelper
      * @return bool
      * @throws GuzzleException
      */
-    public function getUrl(string $apiKey): bool
+    public function getUrl(string $apiKey)
     {
         $param = [];
         $log = ['param' => $param];
@@ -85,7 +85,7 @@ class Webhook extends AbstractHelper
      * @return bool
      * @throws GuzzleException
      */
-    public function updateUrl(string $apiKey): bool
+    public function updateUrl(string $apiKey)
     {
         try {
             $url = $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_LINK, true);

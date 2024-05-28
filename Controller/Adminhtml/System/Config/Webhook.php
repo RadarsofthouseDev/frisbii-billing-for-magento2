@@ -125,7 +125,7 @@ class Webhook extends Action
      *
      * @return bool
      */
-    protected function _isAllowed(): bool
+    protected function _isAllowed()
     {
         return $this->_authorization
             ->isAllowed('Radarsofthouse_BillwerkPlusSubscription::config_billwerkplus_subscription');

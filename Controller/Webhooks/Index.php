@@ -400,7 +400,7 @@ class Index extends Action
      * @return array
      * @throws PaymentException
      */
-    protected function settled(array $data): array
+    protected function settled(array $data)
     {
         $order_id = $data['invoice'];
         $this->logger->addDebug(__METHOD__, [$order_id]);
@@ -720,7 +720,7 @@ class Index extends Action
      * @param array $data
      * @return array
      */
-    protected function cancel(array $data): array
+    protected function cancel(array $data)
     {
         $order_id = $data['invoice'];
         $this->logger->addDebug(__METHOD__, [$order_id]);
@@ -797,7 +797,7 @@ class Index extends Action
      * @return array
      * @throws PaymentException
      */
-    protected function authorize(array $data): array
+    protected function authorize(array $data)
     {
         $order_id = $data['invoice'];
         $this->logger->addDebug(__METHOD__, [$order_id]);
@@ -886,7 +886,7 @@ class Index extends Action
      * @param array $data
      * @return array
      */
-    protected function subscriptionRenewal($data): array
+    protected function subscriptionRenewal($data)
     {
         try {
             $storeManager = $this->context->getObjectManager()->get(\Magento\Store\Model\StoreManagerInterface::class);
@@ -1028,7 +1028,7 @@ class Index extends Action
      * @return array
      * @throws LocalizedException
      */
-    protected function subscriptionInvoiceSettled($data, int $try = 0): array
+    protected function subscriptionInvoiceSettled($data, int $try = 0)
     {
         $baseOrderId = $this->getBaseOrderId($data['subscription']);
 
@@ -1231,7 +1231,7 @@ class Index extends Action
      * @param array $data
      * @return array
      */
-    protected function subscriptionActive($data): array
+    protected function subscriptionActive($data)
     {
         $subscriptionHandle = $data['subscription'];
         $customerHandle = $data['customer'];
@@ -1262,7 +1262,7 @@ class Index extends Action
      * @param array $data
      * @return array
      */
-    protected function subscriptionInActive($data): array
+    protected function subscriptionInActive($data)
     {
         $subscriptionHandle = $data['subscription'];
         $customerHandle = $data['customer'];

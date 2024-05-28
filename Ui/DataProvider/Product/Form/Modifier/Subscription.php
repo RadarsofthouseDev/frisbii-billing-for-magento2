@@ -87,7 +87,7 @@ class Subscription extends AbstractModifier
     /**
      * @inheritDoc
      */
-    public function modifyData(array $data): array
+    public function modifyData(array $data)
     {
         return $data;
     }
@@ -95,7 +95,7 @@ class Subscription extends AbstractModifier
     /**
      * @inheritDoc
      */
-    public function modifyMeta(array $meta): array
+    public function modifyMeta(array $meta)
     {
         $this->meta = $meta;
         $product = $this->locator->getProduct();

@@ -37,8 +37,6 @@ class Customer extends AbstractHelper
         Logger $logger
     ) {
         parent::__construct($context);
-        $this->customerRepository = $customerRepository;
-        $this->customerFactory = $customerFactory;
         $this->client = new Api();
         $this->logger = $logger;
     }

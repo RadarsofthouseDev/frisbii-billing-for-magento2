@@ -105,7 +105,7 @@ class Api
      *
      * @return array
      */
-    public function getErrors(): array
+    public function getErrors()
     {
         return $this->errors;
     }
@@ -115,7 +115,7 @@ class Api
      *
      * @return array
      */
-    public function getLastResponse(): array
+    public function getLastResponse()
     {
         return $this->lastResponse;
     }
@@ -125,7 +125,7 @@ class Api
      *
      * @return array
      */
-    public function getLastRequest(): array
+    public function getLastRequest()
     {
         return $this->lastRequest;
     }
@@ -135,7 +135,7 @@ class Api
      *
      * @return bool
      */
-    public function success(): bool
+    public function success()
     {
         return $this->requestSuccessful;
     }
@@ -293,7 +293,7 @@ class Api
      * @param ResponseInterface $response
      * @return array
      */
-    private function requestSuccess(ResponseInterface $response): array
+    private function requestSuccess(ResponseInterface $response)
     {
         $this->requestSuccessful = true;
         $this->lastResponse['headers'] = $this->getHeadersAsArray($response);
@@ -310,7 +310,7 @@ class Api
      * @param RequestException $e
      * @return array
      */
-    private function requestError(RequestException $e): array
+    private function requestError(RequestException $e)
     {
         $this->requestSuccessful = false;
         $this->lastRequest['headers'] = $this->getHeadersAsArray($e->getRequest());
@@ -353,7 +353,7 @@ class Api
      * @param int $timeout
      * @return array
      */
-    private function prepareStateForRequest(string $verb, string $endpoint, string $url, int $timeout): array
+    private function prepareStateForRequest(string $verb, string $endpoint, string $url, int $timeout)
     {
         $this->httpError = '';
         $this->errors = [];
@@ -382,7 +382,7 @@ class Api
      * @param object $headerString
      * @return array
      */
-    private function getHeadersAsArray(object $headerString): array
+    private function getHeadersAsArray(object $headerString)
     {
         $headers = [];
         foreach ($headerString->getHeaders() as $name => $values) {
@@ -412,7 +412,7 @@ class Api
      *
      * @return string
      */
-    private function getMagentoVersion(): string
+    private function getMagentoVersion()
     {
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
         $productMetadata = $objectManager->get(\Magento\Framework\App\ProductMetadataInterface::class);
@@ -425,7 +425,7 @@ class Api
      *
      * @return string
      */
-    private function getMagentoEdition(): string
+    private function getMagentoEdition()
     {
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
         $productMetadata = $objectManager->get(\Magento\Framework\App\ProductMetadataInterface::class);

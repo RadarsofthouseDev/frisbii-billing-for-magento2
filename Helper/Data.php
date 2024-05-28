@@ -102,21 +102,20 @@ class Data extends AbstractHelper
      * @return string $apiKey
      * @throws NoSuchEntityException
      */
-    public function getApiKey($storeId = null): string
+    public function getApiKey($storeId = null)
     {
 
         if ($storeId === null) {
             $storeId = $this->storeManager->getStore()->getId();
         }
 
-        $apiKey = null;
         $testModeConfig = $this->getConfig('api_key_type', $storeId);
         if ($testModeConfig == 1) {
             $apiKey = $this->getConfig('private_key', $storeId);
         } else {
             $apiKey = $this->getConfig('private_key_test', $storeId);
         }
-        return $apiKey;
+        return $apiKey ?? '';
     }
 
     /**
@@ -357,7 +356,7 @@ class Data extends AbstractHelper
      * @param Order $order
      * @return array $paymentMethods
      */
-    public function getPaymentMethods(Order $order): array
+    public function getPaymentMethods(Order $order)
     {
         $allowedPaymentConfig = $this->getConfig('allowwed_payment', $order->getStoreId());
         return explode(',', $allowedPaymentConfig);
@@ -369,7 +368,7 @@ class Data extends AbstractHelper
      * @param array $paymentData
      * @return array $paymentData
      */
-    public function preparePaymentData(array $paymentData): array
+    public function preparePaymentData(array $paymentData)
     {
 
         if (array_key_exists('order_lines', $paymentData)) {
@@ -470,7 +469,7 @@ class Data extends AbstractHelper
      * @param int $amount
      * @return string
      */
-    public function convertAmount(int $amount): string
+    public function convertAmount(int $amount)
     {
         return number_format((float)($amount / 100), 2, '.', '');
     }
@@ -481,7 +480,7 @@ class Data extends AbstractHelper
      * @param array $transactionData
      * @return array $transactionData
      */
-    public function prepareCaptureTransactionData(array $transactionData): array
+    public function prepareCaptureTransactionData(array $transactionData)
     {
         if (array_key_exists('amount', $transactionData)) {
             $transactionData['amount'] = $this->convertAmount((int)$transactionData['amount']);
@@ -568,7 +567,7 @@ class Data extends AbstractHelper
      * @param array $transactionData
      * @return array $transactionData
      */
-    public function prepareRefundTransactionData(array $transactionData): array
+    public function prepareRefundTransactionData(array $transactionData)
     {
         if (isset($transactionData['amount'])) {
             $transactionData['amount'] = $this->convertAmount($transactionData['amount']);

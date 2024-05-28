@@ -11,7 +11,8 @@
 <!--                </item>-->
 <!--            </argument>-->
 <!--        </column>-->
-        <column name="billwerk_customer_handle" class="Radarsofthouse\BillwerkPlusSubscription\Ui\Component\Listing\Column\CustomerHandle">
+        <actionsColumn name="billwerk_customer_handle"
+                       class="Radarsofthouse\BillwerkPlusSubscription\Ui\Component\Listing\Column\CustomerHandle">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
@@ -20,7 +21,7 @@
                     <item name="sortOrder" xsi:type="number">100</item>
                 </item>
             </argument>
-        </column>
+        </actionsColumn>
         <column name="subscription_active" class="Radarsofthouse\BillwerkPlusSubscription\Ui\Component\Listing\Column\SubscriptionStatus">
             <argument name="data" xsi:type="array">
 <!--                <item name="options" xsi:type="object">Radarsofthouse\BillwerkPlusSubscription\Model\Config\Source\SubStatus</item>-->
