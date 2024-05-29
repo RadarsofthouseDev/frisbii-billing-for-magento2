@@ -53,6 +53,11 @@ class SubmitBefore implements \Magento\Framework\Event\ObserverInterface
     protected $urlBuilder;
 
     /**
+     * @var \Radarsofthouse\BillwerkPlusSubscription\Helper\Logger
+     */
+    protected $logger;
+
+    /**
      * @param \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository
      * @param \Magento\Customer\Api\Data\CustomerInterfaceFactory $customerInterfaceFactory
      * @param \Magento\Framework\Reflection\DataObjectProcessor $dataProcessor
@@ -66,6 +71,7 @@ class SubmitBefore implements \Magento\Framework\Event\ObserverInterface
      * @param \Magento\Framework\Math\Random $mathRandom
      * @param \Magento\Framework\UrlInterface $urlBuilder
      * @param \Radarsofthouse\BillwerkPlusSubscription\Helper\Data $helper
+     * @param \Radarsofthouse\BillwerkPlusSubscription\Helper\Logger $logger
      */
     public function __construct(
         \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository,
@@ -80,7 +86,8 @@ class SubmitBefore implements \Magento\Framework\Event\ObserverInterface
         \Magento\Framework\Translate\Inline\StateInterface $inlineTranslation,
         \Magento\Framework\Math\Random $mathRandom,
         \Magento\Framework\UrlInterface $urlBuilder,
-        \Radarsofthouse\BillwerkPlusSubscription\Helper\Data $helper
+        \Radarsofthouse\BillwerkPlusSubscription\Helper\Data $helper,
+        \Radarsofthouse\BillwerkPlusSubscription\Helper\Logger $logger
     ) {
         $this->customerRepository = $customerRepository;
         $this->customerInterfaceFactory  = $customerInterfaceFactory;
@@ -95,6 +102,7 @@ class SubmitBefore implements \Magento\Framework\Event\ObserverInterface
         $this->_mathRandom = $mathRandom;
         $this->urlBuilder = $urlBuilder;
         $this->helper = $helper;
+        $this->logger = $logger;
     }
 
     /**
@@ -123,7 +131,12 @@ class SubmitBefore implements \Magento\Framework\Event\ObserverInterface
 
         // Skip process below if "allow_to_create_customer" = NO
         if (!$this->helper->getConfig('allow_to_create_customer', $storeId)) {
-            return;
+            $this->logger->addInfo(__METHOD__);
+            $this->logger->addInfo("Checkout by guest and auto create customer function is disabled. Email: {$quote->getCustomerEmail()}");
+            $this->messageManager->addErrorMessage(__("There is subscription product in your cart. Please login before placing the order."));
+            throw new LocalizedException(
+                __('Please login or create before placing the order.')
+            );
         }
 
         $customerId = $quote->getCustomerId();
@@ -134,7 +147,7 @@ class SubmitBefore implements \Magento\Framework\Event\ObserverInterface
 
             // If the email already exist in the customer list.
             if ($customer) {
-                $this->messageManager->addErrorMessage(__("There is subscription product in your cart and you 
+                $this->messageManager->addErrorMessage(__("There is subscription product in your cart and you
                 already have a customer account so please login before placing the order."));
                 throw new LocalizedException(
                     __('Please login before placing the order.')
@@ -195,12 +208,28 @@ class SubmitBefore implements \Magento\Framework\Event\ObserverInterface
         // Create a new customer
         // Get Website ID
         $websiteId  = $this->storeManager->getWebsite()->getWebsiteId();
-
+        $storeId = $this->storeManager->getWebsite($websiteId)->getDefaultStore()->getId();
+        $storeName = $this->storeManager->getStore($storeId)->getName();
+        /** @var \Magento\Customer\Api\Data\CustomerInterface $customer */
         $customer = $this->customerInterfaceFactory->create();
         $customer->setWebsiteId($websiteId);
+        $customer->setStoreId($storeId);
+        $customer->setCreatedIn($storeName);
         $customer->setEmail($quote->getCustomerEmail());
-        $customer->setFirstname($quote->getCustomerFirstname());
-        $customer->setLastname($quote->getCustomerLastname());
+        if ($quote->getCustomerFirstname() !== null && $quote->getCustomerLastname() !== null
+        ) {
+            $customer->setFirstname((string)$quote->getCustomerFirstname());
+            $customer->setLastname((string)$quote->getCustomerLastname());
+            if ($quote->getCustomerMiddlename() !== null) {
+                $customer->setMiddlename((string)$quote->getCustomerMiddlename());
+            }
+        } elseif ($quote->getBillingAddress()) {
+            $customer->setFirstname((string)$quote->getBillingAddress()->getFirstname());
+            $customer->setLastname((string)$quote->getBillingAddress()->getLastname());
+            if ($quote->getBillingAddress()->getMiddlename() !== null) {
+                $customer->setMiddlename((string)$quote->getBillingAddress()->getMiddlename());
+            }
+        }
 
         // Generate a random password and save customer
         $password = $this->generatePassword();
@@ -209,7 +238,12 @@ class SubmitBefore implements \Magento\Framework\Event\ObserverInterface
         // Retrieve customer by email to ensure they were saved correctly
         $savedCustomer = $this->getCustomerByEmail($quote->getCustomerEmail());
         if ($savedCustomer) {
-            $this->sendCustomEmail($savedCustomer);
+            try {
+                $this->sendCustomEmail($savedCustomer);
+            }catch (LocalizedException $e) {
+                $this->logger->addInfo(__METHOD__);
+                $this->logger->addInfo("Can't send email to " . $savedCustomer->getEmail() . " with Customer Id: " . $savedCustomer->getId());
+            }
             return $savedCustomer;
         } else {
             return null;
