@@ -125,7 +125,7 @@ class SubmitBefore implements \Magento\Framework\Event\ObserverInterface
         $storeId = $order->getStoreId();
 
         // If Payment method are not Billwerk+
-        if (!$this->helper->isOurPaymentMethod($quote->getPayment()->getMethod())) {
+        if ($quote->isMultipleShippingAddresses() || !$quote->getPayment() || !$this->helper->isOurPaymentMethod($quote->getPayment()->getMethod())) {
             return;
         }
 

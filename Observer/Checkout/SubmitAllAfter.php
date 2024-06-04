@@ -30,7 +30,7 @@ class SubmitAllAfter implements \Magento\Framework\Event\ObserverInterface
         /** @var OrderInterface $originalOrder */
         $order = $originalOrder = $observer->getEvent()->getOrder();
 
-        if ($originalOrder->getPayment()->getMethod() !== 'billwerkplus_subscription') {
+        if ($quote->isMultipleShippingAddresses() || !$originalOrder->getPayment() || $originalOrder->getPayment()->getMethod() !== 'billwerkplus_subscription') {
             return;
         }
 

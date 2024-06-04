@@ -1,5 +1,8 @@
 
 # Changelog
+## Version 1.0.4 on 4 June 2024
+- Fixed the error when checkout with multiple addresses
+
 ## Version 1.0.3 on 29 May 2024
 - Fixed customer error with an empty first name and last name.
 - Fixed the email sending error when checkout as a guest and the email does not exist.
