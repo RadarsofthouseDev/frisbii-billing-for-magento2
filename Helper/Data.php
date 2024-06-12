@@ -1,8 +1,10 @@
 <?php
+
 /**
  * Copyright © radarsofthouse.dk All rights reserved.
  * See COPYING.txt for license details.
  */
+
 declare(strict_types=1);
 
 namespace Radarsofthouse\BillwerkPlusSubscription\Helper;
@@ -22,6 +24,7 @@ use Magento\Sales\Model\Order\Payment\Transaction\BuilderInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Radarsofthouse\BillwerkPlusSubscription\Model\StatusFactory;
+use Magento\Catalog\Model\Product;
 
 class Data extends AbstractHelper
 {
@@ -344,7 +347,7 @@ class Data extends AbstractHelper
                 'vat' => 0,
                 'amount_incl_vat' => "true",
             ];
-//            $orderLines[] = $line;
+            //            $orderLines[] = $line;
         }
 
         return $orderLines;
@@ -712,5 +715,16 @@ class Data extends AbstractHelper
             }
         }
         return ($isNormal && $isSubscription);
+    }
+
+    /**
+     * Return true if the product is Billwerk+ subscrition prodict
+     *
+     * @param Product $product
+     * @return bool
+     */
+    public function isBillwerkSubscriptionProduct(Product $product)
+    {
+        return $product->getBillwerkSubEnabled() && $product->getBillwerkSubPlan() && !empty($product->getBillwerkSubPlan());
     }
 }

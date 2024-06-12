@@ -1,5 +1,7 @@
-
 # Changelog
+## Version 1.0.5 on 12 June 2024
+- Implemented validation to ensure multiple subscription products are not added to the cart.
+
 ## Version 1.0.4 on 4 June 2024
 - Fixed the error when checkout with multiple addresses
 

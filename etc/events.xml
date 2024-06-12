@@ -16,4 +16,10 @@
     <event name="sales_quote_address_collect_totals_after">
         <observer name="radarsofthouse_billwerkplussubscription_observer_sales_quoteaddresscollecttotalsafter_sales_quote_address_collect_totals_after" instance="Radarsofthouse\BillwerkPlusSubscription\Observer\Sales\QuoteAddressCollectTotalsAfter"/>
     </event>
+    <event name="checkout_cart_product_add_before">
+        <observer name="radarsofthouse_billwerkplussubscription_checkout_cart_product_add_before" instance="Radarsofthouse\BillwerkPlusSubscription\Observer\Checkout\CartProductAddBefore" />
+    </event>
+    <event name="checkout_cart_update_items_before">
+        <observer name="radarsofthouse_billwerkplussubscription_checkout_cart_update_items_before" instance="Radarsofthouse\BillwerkPlusSubscription\Observer\Checkout\CartUpdateItemsBefore" />
+    </event>
 </config>
