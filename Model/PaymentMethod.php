@@ -10,6 +10,7 @@ namespace Radarsofthouse\BillwerkPlusSubscription\Model;
 use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
 use Magento\Framework\Registry;
 use Magento\Payment\Gateway\Command\CommandManagerInterface;
 use Magento\Payment\Gateway\Command\CommandPoolInterface;
@@ -50,7 +51,7 @@ class PaymentMethod extends Adapter
      */
     private $logger;
     /**
-     * @var \Magento\Framework\Message\ManagerInterface
+     * @var MessageManagerInterface
      */
     private $messageManager;
 
@@ -73,22 +74,22 @@ class PaymentMethod extends Adapter
      * @param LoggerInterface|null $logger
      */
     public function __construct(
-        ManagerInterface                            $eventManager,
-        ValueHandlerPoolInterface                   $valueHandlerPool,
-        PaymentDataObjectFactory                    $paymentDataObjectFactory,
-        string                                      $code,
-        string                                      $formBlockType,
-        string                                      $infoBlockType,
-        Data                                        $helper,
-        Charge                                      $helperCharge,
-        Refund                                      $helperRefund,
-        Registry                                    $registry,
-        Logger                                      $helperLogger,
-        \Magento\Framework\Message\ManagerInterface $messageManager,
-        CommandPoolInterface                        $commandPool = null,
-        ValidatorPoolInterface                      $validatorPool = null,
-        CommandManagerInterface                     $commandExecutor = null,
-        LoggerInterface                             $logger = null
+        ManagerInterface          $eventManager,
+        ValueHandlerPoolInterface $valueHandlerPool,
+        PaymentDataObjectFactory  $paymentDataObjectFactory,
+        string                    $code,
+        string                    $formBlockType,
+        string                    $infoBlockType,
+        Data                      $helper,
+        Charge                    $helperCharge,
+        Refund                    $helperRefund,
+        Registry                  $registry,
+        Logger                    $helperLogger,
+        MessageManagerInterface   $messageManager,
+        CommandPoolInterface      $commandPool = null,
+        ValidatorPoolInterface    $validatorPool = null,
+        CommandManagerInterface   $commandExecutor = null,
+        LoggerInterface           $logger = null
     ) {
         $this->helper = $helper;
         $this->helperCharge = $helperCharge;
@@ -183,18 +184,21 @@ class PaymentMethod extends Adapter
     public function isAvailable(CartInterface $quote = null)
     {
         if ($quote) {
-            $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-            $productRepository = $objectManager->get(\Magento\Catalog\Api\ProductRepositoryInterface::class);
             if ($quote->getItems()) {
                 foreach ($quote->getItems() as $item) {
                     try {
-                        $product = $productRepository->get($item->getSku());
-                        $subEnabledAttribute = $product->getCustomAttribute('billwerk_sub_enabled');
-                        $subEnabled = null !== $subEnabledAttribute ? $subEnabledAttribute->getValue() : 0;
-                        $subPlanAttribute = $product->getCustomAttribute('billwerk_sub_plan');
-                        $subPlan = null !== $subPlanAttribute ? $subPlanAttribute->getValue() : '';
-                        if ($subEnabled && !empty($subPlan)) {
-                            return true;
+                        if(in_array($item->getProductType(), ['simple', 'virtual'])) {
+                            if ($this->helper->isBillwerkSubscriptionProductById($item->getProductId())) {
+                                return true;
+                            }
+                        }elseif ($item->getProductType() === 'configurable') {
+                            if ($item->getHasChildren() ) {
+                                foreach ($item->getChildren() as $child) {
+                                    if ($this->helper->isBillwerkSubscriptionProductById($child->getProductId())) {
+                                        return true;
+                                    }
+                                }
+                            }
                         }
                     } catch (NoSuchEntityException $e) {
                         return false;

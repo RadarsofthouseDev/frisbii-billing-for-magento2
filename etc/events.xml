@@ -1,8 +1,5 @@
 <?xml version="1.0" ?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
-	<event name="payment_method_is_active">
-		<observer name="radarsofthouse_billwerkplus_observer_payment_methodisactive_payment_method_is_active" instance="Radarsofthouse\BillwerkPlusSubscription\Observer\Payment\MethodIsActive"/>
-	</event>
     <event name="checkout_submit_all_after">
         <observer name="radarsofthouse_billwerkplussubscription_observer_checkout_submitallafter_checkout_submit_all_after" instance="Radarsofthouse\BillwerkPlusSubscription\Observer\Checkout\SubmitAllAfter"/>
     </event>
