@@ -1,4 +1,7 @@
 # Changelog
+## Version 1.0.7 on 19 August 2024
+- Fixed the error: "Identical operator === is not used for testing the return value of strpos function"
+
 ## Version 1.0.6 on 19 August 2024
 - Billwerk+ Add-ons can be matched with Magento simple products.
 - Renamed the module to "Billwerk+ Optimize".

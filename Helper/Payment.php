@@ -1,8 +1,10 @@
 <?php
+
 /**
  * Copyright © radarsofthouse.dk All rights reserved.
  * See COPYING.txt for license details.
  */
+
 declare(strict_types=1);
 
 namespace Radarsofthouse\BillwerkPlusSubscription\Helper;
@@ -336,7 +338,7 @@ class Payment extends AbstractHelper
                         $qty = $item->getQtyOrdered();
                         $buyRequest = $item->getBuyRequest();
                         $options = $buyRequest->getData('options');
-                        if($options){
+                        if ($options) {
                             $this->getAddons($order, $item, $options, $addOns);
                         }
                     }
@@ -362,8 +364,6 @@ class Payment extends AbstractHelper
                         }
                     }
                 }
-
-
             } catch (NoSuchEntityException $exception) {
                 continue;
             }
@@ -383,7 +383,7 @@ class Payment extends AbstractHelper
             'generate_handle' => true,
             'metadata' => $metadata
         ];
-        if($addOns){
+        if ($addOns) {
             $subscriptionData['add_ons'] = $addOns;
         }
         $options = [];
@@ -460,7 +460,7 @@ class Payment extends AbstractHelper
                         }
                     }
                 }
-            } else if (strpos($option, ',')) {
+            } else if (strpos($option, ',') !== false) {
                 $optionExplode = explode(',', $option);
                 foreach ($optionExplode as $value) {
                     if (isset($optionValues[$value])) {
@@ -486,5 +486,4 @@ class Payment extends AbstractHelper
             }
         }
     }
-
 }

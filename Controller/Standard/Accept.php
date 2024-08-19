@@ -1,8 +1,10 @@
 <?php
+
 /**
  * Copyright © radarsofthouse.dk All rights reserved.
  * See COPYING.txt for license details.
  */
+
 declare(strict_types=1);
 
 namespace Radarsofthouse\BillwerkPlusSubscription\Controller\Standard;
@@ -240,7 +242,7 @@ class Accept extends Action
                             $qty = $item->getQtyOrdered();
                             $buyRequest = $item->getBuyRequest();
                             $options = $buyRequest->getData('options');
-                            if($options){
+                            if ($options) {
                                 $this->getAddons($order, $item, $options, $addOns);
                             }
                         }
@@ -266,8 +268,6 @@ class Accept extends Action
                             }
                         }
                     }
-
-
                 } catch (NoSuchEntityException $exception) {
                     continue;
                 }
@@ -287,7 +287,7 @@ class Accept extends Action
                     ]
                 ]
             ];
-            if($addOns){
+            if ($addOns) {
                 $subscription['add_ons'] = $addOns;
             }
             $this->logger->addDebug(__METHOD__, $subscription);
@@ -369,7 +369,7 @@ class Accept extends Action
                         }
                     }
                 }
-            } else if (strpos($option, ',')) {
+            } else if (strpos($option, ',') !== false) {
                 $optionExplode = explode(',', $option);
                 foreach ($optionExplode as $value) {
                     if (isset($optionValues[$value])) {
