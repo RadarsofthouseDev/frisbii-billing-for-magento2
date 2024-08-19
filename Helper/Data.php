@@ -34,6 +34,8 @@ class Data extends AbstractHelper
         'billwerkplus_subscription',
     ];
 
+    public const TERMS_AND_CONDITIONS_NAME = 'billwerk_plus_optimize_terms_and_conditions';
+
     /**
      * @var StoreManagerInterface
      */

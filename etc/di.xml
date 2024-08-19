@@ -9,6 +9,7 @@
     <preference for="Radarsofthouse\BillwerkPlusSubscription\Api\SessionRepositoryInterface" type="Radarsofthouse\BillwerkPlusSubscription\Model\SessionRepository"/>
     <preference for="Radarsofthouse\BillwerkPlusSubscription\Api\Data\SessionInterface" type="Radarsofthouse\BillwerkPlusSubscription\Model\Session"/>
     <preference for="Radarsofthouse\BillwerkPlusSubscription\Api\Data\SessionSearchResultsInterface" type="Magento\Framework\Api\SearchResults"/>
+    <preference for="Magento\CheckoutAgreements\Model\AgreementsConfigProvider" type="Radarsofthouse\BillwerkPlusSubscription\Model\AgreementsConfigProvider"/>
 
     <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
         <arguments>
@@ -118,4 +119,12 @@
             </argument>
         </arguments>
     </virtualType>
+
+    <!-- Plugins -->
+    <type name="Magento\CheckoutAgreements\Block\Agreements">
+        <plugin name="radarsofthouse_billwerkplussubscription_checkout_agreements_plugin" type="Radarsofthouse\BillwerkPlusSubscription\Plugin\CheckoutAgreements\Block\AgreementsPlugin" />
+    </type>
+    <type name="Magento\CheckoutAgreements\Model\AgreementsProvider">
+        <plugin name="radarsofthouse_billwerkplussubscription_agreements_provider_plugin" type="Radarsofthouse\BillwerkPlusSubscription\Plugin\CheckoutAgreements\Model\AgreementsProviderPlugin" />
+    </type>
 </config>

@@ -11,4 +11,29 @@
             </argument>
         </arguments>
     </virtualType>
+
+    <type name="Magento\Framework\View\Element\Message\MessageConfigurationsPool">
+        <arguments>
+            <argument name="configurationsMap" xsi:type="array">
+                <item name="testModeEnabledNoticeMessage" xsi:type="array">
+                    <item name="renderer" xsi:type="const">\Magento\Framework\View\Element\Message\Renderer\BlockRenderer::CODE</item>
+                    <item name="data" xsi:type="array">
+                        <item name="template" xsi:type="string">Radarsofthouse_BillwerkPlusSubscription::messages/testModeEnabledNoticeMessage.phtml</item>
+                    </item>
+                </item>
+                <item name="testModeDisabledNoticeMessage" xsi:type="array">
+                    <item name="renderer" xsi:type="const">\Magento\Framework\View\Element\Message\Renderer\BlockRenderer::CODE</item>
+                    <item name="data" xsi:type="array">
+                        <item name="template" xsi:type="string">Radarsofthouse_BillwerkPlusSubscription::messages/testModeDisabledNoticeMessage.phtml</item>
+                    </item>
+                </item>
+                <item name="liveKeyChangedNoticeMessage" xsi:type="array">
+                    <item name="renderer" xsi:type="const">\Magento\Framework\View\Element\Message\Renderer\BlockRenderer::CODE</item>
+                    <item name="data" xsi:type="array">
+                        <item name="template" xsi:type="string">Radarsofthouse_BillwerkPlusSubscription::messages/liveKeyChangedNoticeMessage.phtml</item>
+                    </item>
+                </item>
+            </argument>
+        </arguments>
+    </type>
 </config>

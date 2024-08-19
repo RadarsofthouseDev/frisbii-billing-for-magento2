@@ -3,7 +3,7 @@
     <system>
         <section id="payment" sortOrder="1000" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
             <group id="billwerkplus_subscription" sortOrder="89" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-                <label>Billwerk+ Subscription</label>
+                <label>Billwerk+ Optimize</label>
                 <field id="version"  type="label" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1" translate="label">
                     <label>Module Version</label>
                     <frontend_model>Radarsofthouse\BillwerkPlusSubscription\Block\Adminhtml\System\Config\Form\Field\Version</frontend_model>

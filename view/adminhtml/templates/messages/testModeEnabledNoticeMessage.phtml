@@ -1,0 +1,9 @@
+<?php
+
+/** @var \Magento\Framework\View\Element\Template $block */
+?>
+
+<?= $block->escapeHtml(__(
+    'Test mode enabled: You just enabled test mode, meaning your test API key will now be used. Please note that all subscription products previously linked to plans on your live account are no longer linked. If you try to purchase a subscription product now, an error will occur. Disabling test mode will restore all connections. <a href="%1" target="_blank">Read more about this here.</a>',
+    $block->getData('link')
+), ['a']); ?>

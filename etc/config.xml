@@ -4,7 +4,7 @@
         <payment>
             <billwerkplus_subscription>
                 <active>0</active>
-                <title>Payment by Billwerk+ Subscription</title>
+                <title>Payment by Billwerk+ Optimize</title>
                 <instructions>Billwerk+ payment</instructions>
                 <private_key_test/>
                 <private_key/>
