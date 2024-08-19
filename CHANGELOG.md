@@ -1,4 +1,11 @@
 # Changelog
+## Version 1.0.6 on 19 August 2024
+- Billwerk+ Add-ons can be matched with Magento simple products.
+- Renamed the module to "Billwerk+ Optimize".
+- Added an admin notice for changes to the API key configuration.
+- Restricted the payment method to "billwerkplus_subscription" when a Billwerk Subscription Product is in the cart.
+- Added terms and conditions on the checkout page for Billwerk Subscription Products.
+
 ## Version 1.0.5 on 12 June 2024
 - Implemented validation to ensure multiple subscription products are not added to the cart.
 
