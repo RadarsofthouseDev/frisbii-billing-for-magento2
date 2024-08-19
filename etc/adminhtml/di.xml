@@ -36,4 +36,45 @@
             </argument>
         </arguments>
     </type>
+    <virtualType name="Magento\CatalogStaging\Ui\DataProvider\Product\Form\Modifier\Pool" type="Magento\Ui\DataProvider\Modifier\Pool">
+        <arguments>
+            <argument name="modifiers" xsi:type="array">
+                <item name="billwerk-option-all" xsi:type="array">
+                    <item name="class" xsi:type="string">Radarsofthouse\BillwerkPlusSubscription\Ui\DataProvider\Product\Form\Modifier\All</item>
+                    <item name="sortOrder" xsi:type="number">71</item>
+                </item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Magento\Catalog\Ui\DataProvider\Product\Form\Modifier\Pool" type="Magento\Ui\DataProvider\Modifier\Pool">
+        <arguments>
+            <argument name="modifiers" xsi:type="array">
+                <item name="billwerk-option-all" xsi:type="array">
+                    <item name="class" xsi:type="string">Radarsofthouse\BillwerkPlusSubscription\Ui\DataProvider\Product\Form\Modifier\All</item>
+                    <item name="sortOrder" xsi:type="number">71</item>
+                </item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Radarsofthouse\BillwerkPlusSubscription\Ui\DataProvider\Product\Form\Modifier\Pool" type="Magento\Ui\DataProvider\Modifier\Pool">
+        <arguments>
+            <argument name="modifiers" xsi:type="array">
+            </argument>
+        </arguments>
+    </virtualType>
+    <type name="Radarsofthouse\BillwerkPlusSubscription\Ui\DataProvider\Product\Form\Modifier\All">
+        <arguments>
+            <argument name="pool" xsi:type="object">Radarsofthouse\BillwerkPlusSubscription\Ui\DataProvider\Product\Form\Modifier\Pool</argument>
+        </arguments>
+    </type>
+    <virtualType name="Radarsofthouse\BillwerkPlusSubscription\Ui\DataProvider\Product\Form\Modifier\Pool">
+        <arguments>
+            <argument name="modifiers" xsi:type="array">
+                <item name="billwerk-option-base" xsi:type="array">
+                    <item name="class" xsi:type="string">Radarsofthouse\BillwerkPlusSubscription\Ui\DataProvider\Product\Form\Modifier\Addon</item>
+                    <item name="sortOrder" xsi:type="number">72</item>
+                </item>
+            </argument>
+        </arguments>
+    </virtualType>
 </config>

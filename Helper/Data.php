@@ -268,14 +268,14 @@ class Data extends AbstractHelper
         /** @var \Magento\Sales\Model\Order\Item $orderitem */
         foreach ($orderitems as $orderitem) {
             try {
-                $product = $this->productRepository->get($orderitem->getSku());
+                $product = $this->productRepository->getById($orderitem->getProductId());
                 $subEnabledAttribute = $product->getCustomAttribute('billwerk_sub_enabled');
                 $subEnabled = null !== $subEnabledAttribute ? $subEnabledAttribute->getValue() : 0;
                 $subPlanAttribute = $product->getCustomAttribute('billwerk_sub_plan');
                 $subPlan = null !== $subPlanAttribute ? $subPlanAttribute->getValue() : '';
                 if ($subEnabled && !empty($subPlan)) {
                     $line = [
-                        'ordertext' => $orderitem->getProduct()->getName(),
+                        'ordertext' => $orderitem->getName(),
                         'amount' => 0,
                         'quantity' => $this->toInt($orderitem->getQtyOrdered()),
                         'vat' => 0,
@@ -720,7 +720,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Return true if the product is Billwerk+ subscrition prodict
+     * Return true if the product is Billwerk+ subscription product
      *
      * @param Product $product
      * @return bool
@@ -728,5 +728,27 @@ class Data extends AbstractHelper
     public function isBillwerkSubscriptionProduct(Product $product)
     {
         return $product->getBillwerkSubEnabled() && $product->getBillwerkSubPlan() && !empty($product->getBillwerkSubPlan());
+    }
+
+    /**
+     * Return true if the product is Billwerk+ subscription product by ID
+     * @param $productId
+     * @return bool
+     */
+    public function isBillwerkSubscriptionProductById($productId)
+    {
+        try {
+            $product = $this->productRepository->getById($productId);
+            $subEnabledAttribute = $product->getCustomAttribute('billwerk_sub_enabled');
+            $subEnabled = null !== $subEnabledAttribute ? $subEnabledAttribute->getValue() : 0;
+            $subPlanAttribute = $product->getCustomAttribute('billwerk_sub_plan');
+            $subPlan = null !== $subPlanAttribute ? $subPlanAttribute->getValue() : '';
+            if ($subEnabled && !empty($subPlan)) {
+                return true;
+            }
+        } catch (NoSuchEntityException $e) {
+            return false;
+        }
+        return false;
     }
 }

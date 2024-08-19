@@ -896,6 +896,8 @@ class Index extends Action
             $productFactory = $this->context->getObjectManager()->get(\Magento\Catalog\Model\ProductFactory::class);
             /** @var \Magento\Quote\Model\QuoteManagement $quoteManagement */
             $quoteManagement = $this->context->getObjectManager()->get(\Magento\Quote\Model\QuoteManagement::class);
+            /** @var \Magento\Catalog\Api\ProductRepositoryInterface $productRepository */
+            $productRepository= $this->context->getObjectManager()->get(\Magento\Catalog\Api\ProductRepositoryInterface::class);
 
             $this->registry->register('billwerk_subscription_webhook', true);
             $this->registry->register('billwerk_subscription_webhook_renewal_order', true);
@@ -935,9 +937,16 @@ class Index extends Action
             }
 
             $productIds = [];
+            $productOptions = [];
 
             foreach ($baseOrder->getItems() as $item) {
                 $productIds[$item->getProductId()] = $item->getQtyOrdered();
+                $productOptions[$item->getProductId()] = null;
+                $options = $item->getProductOptions();
+                if(isset($options['info_buyRequest']['options']) &&
+                    is_array($options['info_buyRequest']['options'])){
+                    $productOptions[$item->getProductId()] = $options['info_buyRequest']['options'];
+                }
             }
 
             $store = $storeManager->getStore($baseOrder->getStoreId());
@@ -958,17 +967,25 @@ class Index extends Action
             $quote->setSendConfirmation(0);
             $quote->save();
             foreach ($productIds as $id => $qty) {
-                $product = $productFactory->create()->load($id);
+                $product = $productRepository->getById($id);
                 if ($product->getBillwerkSubEnabled() && $product->getBillwerkSubPlan()
                     && !empty($product->getBillwerkSubPlan())) {
-                    $quote->addProduct($product, (int)$qty);
+                    $options = $productOptions[$id];
+                    if($options) {
+                        $quote->addProduct($product, new \Magento\Framework\DataObject([
+                            'qty' => (int)$qty,
+                            'options' => $options
+                        ]));
+                    }else{
+                        $quote->addProduct($product, (int)$qty);
+                    }
                 }
             }
 
             $quote->save();
 
             foreach ($productIds as $id => $qty) {
-                $product = $productFactory->create()->load($id);
+                $product = $productRepository->getById($id);
                 if ($product->getBillwerkSubEnabled() && $product->getBillwerkSubPlan()
                     && !empty($product->getBillwerkSubPlan())) {
                     $productItem = $quote->getItemByProduct($product);

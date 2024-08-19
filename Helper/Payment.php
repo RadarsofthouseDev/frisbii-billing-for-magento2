@@ -320,19 +320,50 @@ class Payment extends AbstractHelper
         $paymentMethods = $this->helper->getPaymentMethods($order);
         $plan = null;
         $qty = 1;
+        $addOns = null;
 
         /** @var \Magento\Sales\Model\Order\Item $item */
         foreach ($order->getAllVisibleItems() as $item) {
             try {
-                $product = $this->productRepository->get($item->getSku());
-                $subEnabledAttribute = $product->getCustomAttribute('billwerk_sub_enabled');
-                $subEnabled = null !== $subEnabledAttribute ? $subEnabledAttribute->getValue() : 0;
-                $subPlanAttribute = $product->getCustomAttribute('billwerk_sub_plan');
-                $subPlan = null !== $subPlanAttribute ? $subPlanAttribute->getValue() : '';
-                if ($subEnabled && !empty($subPlan)) {
-                    $plan = $subPlan;
-                    $qty = $item->getQtyOrdered();
+                if (in_array($item->getProductType(), ['simple', 'virtual'])) {
+                    $product = $this->productRepository->getById($item->getProductId());
+                    $subEnabledAttribute = $product->getCustomAttribute('billwerk_sub_enabled');
+                    $subEnabled = null !== $subEnabledAttribute ? $subEnabledAttribute->getValue() : 0;
+                    $subPlanAttribute = $product->getCustomAttribute('billwerk_sub_plan');
+                    $subPlan = null !== $subPlanAttribute ? $subPlanAttribute->getValue() : '';
+                    if ($subEnabled && !empty($subPlan)) {
+                        $plan = $subPlan;
+                        $qty = $item->getQtyOrdered();
+                        $buyRequest = $item->getBuyRequest();
+                        $options = $buyRequest->getData('options');
+                        if($options){
+                            $this->getAddons($order, $item, $options, $addOns);
+                        }
+                    }
+                } elseif ($item->getProductType() === 'configurable') {
+                    /** @var \Magento\Sales\Model\Order\Item[] $childItems */
+                    $childItems = $item->getChildrenItems();
+                    if ($childItems) {
+                        foreach ($childItems as $child) {
+                            $product = $this->productRepository->getById($child->getProductId());
+                            $subEnabledAttribute = $product->getCustomAttribute('billwerk_sub_enabled');
+                            $subEnabled = null !== $subEnabledAttribute ? $subEnabledAttribute->getValue() : 0;
+                            $subPlanAttribute = $product->getCustomAttribute('billwerk_sub_plan');
+                            $subPlan = null !== $subPlanAttribute ? $subPlanAttribute->getValue() : '';
+                            if ($subEnabled && !empty($subPlan)) {
+                                $plan = $subPlan;
+                                $qty = $child->getQtyOrdered();
+                                $buyRequest = $item->getBuyRequest();
+                                $options = $buyRequest->getData('options');
+                                if ($options) {
+                                    $this->getAddons($order, $item, $options, $addOns);
+                                }
+                            }
+                        }
+                    }
                 }
+
+
             } catch (NoSuchEntityException $exception) {
                 continue;
             }
@@ -352,7 +383,9 @@ class Payment extends AbstractHelper
             'generate_handle' => true,
             'metadata' => $metadata
         ];
-
+        if($addOns){
+            $subscriptionData['add_ons'] = $addOns;
+        }
         $options = [];
 
         $store = $order->getStore();
@@ -406,4 +439,52 @@ class Payment extends AbstractHelper
             );
         }
     }
+
+    private function getAddons($order, $item, $options, &$addOns)
+    {
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        /** @var \Magento\Catalog\Api\ProductCustomOptionRepositoryInterface $productCustomOptionRepository */
+        $productCustomOptionRepository = $objectManager->get(\Magento\Catalog\Api\ProductCustomOptionRepositoryInterface::class);
+        foreach ($options as $index => $option) {
+            $productOption = $productCustomOptionRepository->get($item->getProduct()->getSku(), $index);
+            $optionValues = $productOption->getValues();
+            if (is_array($option)) {
+                foreach ($option as $value) {
+                    if (isset($optionValues[$value])) {
+                        $selectOption = $optionValues[$value];
+                        if ($selectOption->getBillwerkAddonHandle()) {
+                            $addOns[] = [
+                                'handle' => $order->getIncrementId() . '_' . $selectOption->getBillwerkAddonHandle(),
+                                'add_on' => $selectOption->getBillwerkAddonHandle(),
+                            ];
+                        }
+                    }
+                }
+            } else if (strpos($option, ',')) {
+                $optionExplode = explode(',', $option);
+                foreach ($optionExplode as $value) {
+                    if (isset($optionValues[$value])) {
+                        $selectOption = $optionValues[$value];
+                        if ($selectOption->getBillwerkAddonHandle()) {
+                            $addOns[] = [
+                                'handle' => $order->getIncrementId() . '_' . $selectOption->getBillwerkAddonHandle(),
+                                'add_on' => $selectOption->getBillwerkAddonHandle(),
+                            ];
+                        }
+                    }
+                }
+            } else {
+                if (isset($optionValues[$option])) {
+                    $selectOption = $optionValues[$option];
+                    if ($selectOption->getBillwerkAddonHandle()) {
+                        $addOns[] = [
+                            'handle' => $order->getIncrementId() . '_' . $selectOption->getBillwerkAddonHandle(),
+                            'add_on' => $selectOption->getBillwerkAddonHandle(),
+                        ];
+                    }
+                }
+            }
+        }
+    }
+
 }

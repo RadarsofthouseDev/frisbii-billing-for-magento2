@@ -66,4 +66,7 @@
         <column name="billwerk_sub_handle" nullable="true" xsi:type="varchar" comment="Billwerk+ Subscription Handle" length="255"/>
         <column name="billwerk_sub_inv_handle" nullable="true" xsi:type="varchar" comment="Billwerk+ Subscription Invoice Handle" length="255"/>
     </table>
+    <table name="catalog_product_option_type_value">
+        <column name="billwerk_addon_handle" nullable="true" xsi:type="varchar" comment="Billwerk+ Order Type" length="255"/>
+    </table>
 </schema>
