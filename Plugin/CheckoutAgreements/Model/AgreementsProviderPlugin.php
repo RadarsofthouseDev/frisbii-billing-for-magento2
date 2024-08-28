@@ -38,7 +38,7 @@ class AgreementsProviderPlugin
 
     /**
      * Constructor
-     * 
+     *
      * @param CheckoutSession $checkoutSession
      * @param HelperData $helper
      * @param AgreementCollectionFactory $agreementCollectionFactory
@@ -88,7 +88,7 @@ class AgreementsProviderPlugin
 
     /**
      * Check if the cart has a subscription product
-     * 
+     *
      * @return bool
      */
     protected function _hasBillwerkSubscriptionProduct()

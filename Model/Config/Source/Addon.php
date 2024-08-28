@@ -10,7 +10,7 @@ namespace Radarsofthouse\BillwerkPlusSubscription\Model\Config\Source;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\StoreManagerInterface;
 use Radarsofthouse\BillwerkPlusSubscription\Helper\Data;
-use Radarsofthouse\BillwerkPlusSubscription\Helper\Addon as AddonHelper; ;
+use Radarsofthouse\BillwerkPlusSubscription\Helper\Addon as AddonHelper;
 
 class Addon extends \Magento\Eav\Model\Entity\Attribute\Source\AbstractSource
 {
@@ -30,7 +30,7 @@ class Addon extends \Magento\Eav\Model\Entity\Attribute\Source\AbstractSource
 
     /**
      * @param Data $helper
-     * @param AddonHelper $planHelper
+     * @param AddonHelper $addonHelper
      * @param StoreManagerInterface $storeManager
      */
     public function __construct(
@@ -64,6 +64,7 @@ class Addon extends \Magento\Eav\Model\Entity\Attribute\Source\AbstractSource
      * Return Reepay payment key types
      *
      * @return array
+     * @throws NoSuchEntityException
      */
     public function toOptionArray()
     {
@@ -84,6 +85,7 @@ class Addon extends \Magento\Eav\Model\Entity\Attribute\Source\AbstractSource
      * Get All Options
      *
      * @return array|\string[][]|null
+     * @throws NoSuchEntityException
      */
     public function getAllOptions()
     {

@@ -12,9 +12,9 @@ use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Radarsofthouse\BillwerkPlusSubscription\Client\Api;
 
-class Customer extends AbstractHelper
+class Discount extends AbstractHelper
 {
-    public const ENDPOINT = 'customer';
+    public const ENDPOINT = 'discount';
 
     /**
      * @var Api
@@ -42,16 +42,16 @@ class Customer extends AbstractHelper
     }
 
     /**
-     * Get customer by email.
+     * Search discount by handle.
      *
      * @param string $apiKey
-     * @param string $email
+     * @param string $handle
      * @return false|string
      * @throws GuzzleException
      */
-    public function search($apiKey, $email)
+    public function search($apiKey, $handle)
     {
-        $log = ['param' => ['email' => $email]];
+        $log = ['param' => ['handle' => $handle]];
         if (empty($email)) {
             $log['input_error'] = 'empty email.';
             $this->logger->addInfo(__METHOD__, $log, true);
@@ -61,7 +61,8 @@ class Customer extends AbstractHelper
             'size' => 10,
             'range' => 'created',
             'from' => '1970-01-01',
-            'email' => "$email",
+            'state' => 'active',
+            'handle' => "$handle",
         ];
         try {
             $response = $this->client->get($apiKey, 'list/' . self::ENDPOINT, $param);
@@ -84,7 +85,7 @@ class Customer extends AbstractHelper
     }
 
     /**
-     * Get customer by handle.
+     * Get discount by handle.
      *
      * @param string $apiKey
      * @param string $handle

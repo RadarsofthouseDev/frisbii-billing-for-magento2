@@ -127,4 +127,7 @@
     <type name="Magento\CheckoutAgreements\Model\AgreementsProvider">
         <plugin name="radarsofthouse_billwerkplussubscription_agreements_provider_plugin" type="Radarsofthouse\BillwerkPlusSubscription\Plugin\CheckoutAgreements\Model\AgreementsProviderPlugin" />
     </type>
+    <type name="Magento\SalesRule\Model\RulesApplier">
+        <plugin name="Radarsofthouse_BillwerkPlusSubscription_Plugin_Magento_SalesRule_Model_RulesApplier" type="Radarsofthouse\BillwerkPlusSubscription\Plugin\SalesRule\Model\RulesApplier" />
+    </type>
 </config>

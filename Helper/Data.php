@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace Radarsofthouse\BillwerkPlusSubscription\Helper;
 
+use Exception;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
@@ -309,7 +310,8 @@ class Data extends AbstractHelper
         $shippingAmount = ($order->getShippingInclTax() * 100);
         if ($shippingAmount != 0) {
             $line = [
-                'ordertext' => !empty($order->getShippingDescription()) ? $order->getShippingDescription() : __('Shipping')->render(),
+                'ordertext' => !empty($order->getShippingDescription()) ?
+                    $order->getShippingDescription() : __('Shipping')->render(),
                 'amount' => $this->toInt($shippingAmount),
                 'quantity' => 1,
             ];
@@ -329,7 +331,8 @@ class Data extends AbstractHelper
         if ($discountAmount != 0) {
             $line = [
                 'ordertext' => !empty($order->getDiscountDescription()) ?
-                    __('Discount: %1', $order->getDiscountDescription())->render() : __('Discount')->render(),
+                    __('Discount: %1', $order->getDiscountDescription())->render() :
+                    __('Discount')->render(),
                 'amount' => $this->toInt($discountAmount),
                 'quantity' => 1,
                 'vat' => 0,
@@ -421,30 +424,31 @@ class Data extends AbstractHelper
             $state = '';
             $isClosed = 0;
             if ($paymentData['state'] == 'authorized') {
-                $state = \Magento\Sales\Model\Order\Payment\Transaction::TYPE_AUTH;
+                $state = Transaction::TYPE_AUTH;
                 $isClosed = 0;
             } elseif ($paymentData['state'] == 'settled') {
-                $state = \Magento\Sales\Model\Order\Payment\Transaction::TYPE_CAPTURE;
+                $state = TransactionInterface::TYPE_CAPTURE;
                 $isClosed = 1;
             }
 
             $payment = $order->getPayment();
             $payment->setLastTransId($paymentData['transaction']);
             $payment->setTransactionId($paymentData['transaction']);
-            $payment->setAdditionalInformation([\Magento\Sales\Model\Order\Payment\Transaction::RAW_DETAILS => (array)$paymentData]);
+            $payment->setAdditionalInformation([Transaction::RAW_DETAILS => (array)$paymentData]);
 
             $formatedPrice = $order->getBaseCurrency()->formatTxt($order->getGrandTotal());
 
             $transaction = $this->transactionBuilder->setPayment($payment)
                 ->setOrder($order)
                 ->setTransactionId($paymentData['transaction'])
-                ->setAdditionalInformation([\Magento\Sales\Model\Order\Payment\Transaction::RAW_DETAILS => (array)$paymentData])
+                ->setAdditionalInformation([Transaction::RAW_DETAILS => (array)$paymentData])
                 ->setFailSafe(true)
                 ->build($state)
                 ->setIsClosed($isClosed);
 
             // Add transaction to payment
-            $payment->addTransactionCommentsToOrder($transaction, __('The authorized amount is %1.', $formatedPrice));
+            $payment
+                ->addTransactionCommentsToOrder($transaction, __('The authorized amount is %1.', $formatedPrice));
             $payment->setParentTransactionId(null);
 
             // Save payment, transaction and order
@@ -458,13 +462,14 @@ class Data extends AbstractHelper
 
                 $order->setState($orderStatusAfterPayment, true);
                 $order->setStatus($orderStatusAfterPayment);
-                $order->addStatusToHistory($order->getStatus(), 'Billwerk+ : The authorized amount is ' . $totalDue);
+                $comment = 'Billwerk+ : The authorized amount is ' . $totalDue;
+                $order->addStatusToHistory($order->getStatus(), $comment);
                 $order->save();
             }
 
             return $transaction->getTransactionId();
-        } catch (\Exception $e) {
-            throw new \Magento\Framework\Exception\PaymentException(__('addTransactionToOrder() Exception : ' . $e->getMessage()));
+        } catch (Exception $e) {
+            throw new PaymentException(__('addTransactionToOrder() Exception : ' . $e->getMessage()));
         }
     }
 
@@ -493,11 +498,16 @@ class Data extends AbstractHelper
 
         if (array_key_exists('card_transaction', $transactionData)) {
             $cardTransaction = $transactionData['card_transaction'];
-            $transactionData['card_transaction_ref_transaction'] = array_key_exists('ref_transaction', $cardTransaction) ? $cardTransaction['ref_transaction'] : '';
-            $transactionData['card_transaction_fingerprint'] = array_key_exists('fingerprint', $cardTransaction) ? $cardTransaction['fingerprint'] : '';
-            $transactionData['card_transaction_card_type'] = array_key_exists('card_type', $cardTransaction) ? $cardTransaction['card_type'] : '';
-            $transactionData['card_transaction_exp_date'] = array_key_exists('exp_date', $cardTransaction) ? $cardTransaction['exp_date'] : '';
-            $transactionData['card_transaction_masked_card'] = array_key_exists('masked_card', $cardTransaction) ? $cardTransaction['masked_card'] : '';
+            $transactionData['card_transaction_ref_transaction'] =
+                array_key_exists('ref_transaction', $cardTransaction) ? $cardTransaction['ref_transaction'] : '';
+            $transactionData['card_transaction_fingerprint'] =
+                array_key_exists('fingerprint', $cardTransaction) ? $cardTransaction['fingerprint'] : '';
+            $transactionData['card_transaction_card_type'] =
+                array_key_exists('card_type', $cardTransaction) ? $cardTransaction['card_type'] : '';
+            $transactionData['card_transaction_exp_date'] =
+                array_key_exists('exp_date', $cardTransaction) ? $cardTransaction['exp_date'] : '';
+            $transactionData['card_transaction_masked_card'] =
+                array_key_exists('masked_card', $cardTransaction) ? $cardTransaction['masked_card'] : '';
             unset($transactionData['card_transaction']);
         }
 
@@ -514,8 +524,12 @@ class Data extends AbstractHelper
      * @return null|int (Magento Transaction ID)
      * @throws PaymentException
      */
-    public function addCaptureTransactionToOrder(Order $order, array $transactionData = [], array $chargeRes = [], $authorizationTxnId = null)
-    {
+    public function addCaptureTransactionToOrder(
+        Order $order,
+        array $transactionData = [],
+        array $chargeRes = [],
+        $authorizationTxnId = null
+    ) {
         try {
             // prepare transaction data
             $transactionData = $this->prepareCaptureTransactionData($transactionData);
@@ -561,8 +575,8 @@ class Data extends AbstractHelper
                 $order->save();
             }
             return $transactionId;
-        } catch (\Exception $e) {
-            throw new \Magento\Framework\Exception\PaymentException(__('addCaptureTransactionToOrder() Exception : ' . $e->getMessage()));
+        } catch (Exception $e) {
+            throw new PaymentException(__('addCaptureTransactionToOrder() Exception : ' . $e->getMessage()));
         }
     }
 
@@ -628,8 +642,8 @@ class Data extends AbstractHelper
             $order->save();
 
             return $transaction->save()->getTransactionId();
-        } catch (\Exception $e) {
-            throw new \Magento\Framework\Exception\PaymentException(__('addRefundTransactionToOrder() Exception : ' . $e->getMessage()));
+        } catch (Exception $e) {
+            throw new PaymentException(__('addRefundTransactionToOrder() Exception : ' . $e->getMessage()));
         }
     }
 
@@ -669,7 +683,7 @@ class Data extends AbstractHelper
      * @param string $state
      * @return void
      * @throws LocalizedException
-     * @throws \Exception
+     * @throws Exception
      */
     public function setReepayPaymentState(Order\Payment $payment, $state)
     {
@@ -727,12 +741,15 @@ class Data extends AbstractHelper
      */
     public function isBillwerkSubscriptionProduct(Product $product)
     {
-        return $product->getBillwerkSubEnabled() && $product->getBillwerkSubPlan() && !empty($product->getBillwerkSubPlan());
+        return $product->getBillwerkSubEnabled()
+            && $product->getBillwerkSubPlan()
+            && !empty($product->getBillwerkSubPlan());
     }
 
     /**
      * Return true if the product is Billwerk+ subscription product by ID
-     * @param $productId
+     *
+     * @param int $productId
      * @return bool
      */
     public function isBillwerkSubscriptionProductById($productId)

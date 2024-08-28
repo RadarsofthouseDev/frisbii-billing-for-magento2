@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Radarsofthouse\BillwerkPlusSubscription\Controller\Webhooks;
 
 use Exception;
+use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
@@ -18,7 +20,8 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\PaymentException;
 use Magento\Framework\Registry;
 use Magento\Framework\View\Result\PageFactory;
-use Magento\Quote\Model\Quote;
+use Magento\Quote\Api\CartManagementInterface;
+use Magento\Quote\Model\QuoteFactory;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\TransactionInterface;
 use Magento\Sales\Api\Data\TransactionSearchResultInterfaceFactory;
@@ -31,6 +34,7 @@ use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollection
 use Magento\Sales\Model\Service\CreditmemoService;
 use Magento\Sales\Model\Service\InvoiceService;
 use Magento\Sales\Model\Service\OrderService;
+use Magento\Store\Model\StoreManagerInterface;
 use Radarsofthouse\BillwerkPlusSubscription\Api\CustomerSubscriberRepositoryInterface;
 use Radarsofthouse\BillwerkPlusSubscription\Api\CustomerSubscriptionRepositoryInterface;
 use Radarsofthouse\BillwerkPlusSubscription\Api\Data\CustomerSubscriberInterfaceFactory;
@@ -174,6 +178,26 @@ class Index extends Action
      * @var SearchCriteriaBuilder
      */
     protected $searchCriteriaBuilder;
+    /**
+     * @var ProductRepositoryInterface
+     */
+    protected $productRepository;
+    /**
+     * @var CartManagementInterface
+     */
+    protected $cartManagement;
+    /**
+     * @var CustomerRepositoryInterface
+     */
+    protected $customerRepository;
+    /**
+     * @var QuoteFactory
+     */
+    protected $quoteFactory;
+    /**
+     * @var StoreManagerInterface
+     */
+    protected $storeManager;
 
     /**
      * @param Context $context
@@ -204,36 +228,47 @@ class Index extends Action
      * @param CustomerSubscriptionRepositoryInterface $customerSubscriptionRepository
      * @param CustomerSubscriberRepositoryInterface $customerSubscriberRepository
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param ProductRepositoryInterface $productRepository
+     * @param CartManagementInterface $cartManagement
+     * @param CustomerRepositoryInterface $customerRepository
+     * @param QuoteFactory $quoteFactory
+     * @param StoreManagerInterface $storeManager
+     * @throws LocalizedException
      */
     public function __construct(
-        Context                                 $context,
-        PageFactory                             $resultPageFactory,
-        JsonFactory                             $resultJsonFactory,
-        TransactionFactory                      $transactionFactory,
-        Registry                                $registry,
-        Order                                   $order,
-        ConvertOrder                            $convertOrder,
-        OrderService                            $orderService,
-        OrderInterface                          $orderInterface,
-        OrderRepositoryInterface                $orderRepository,
+        Context $context,
+        PageFactory $resultPageFactory,
+        JsonFactory $resultJsonFactory,
+        TransactionFactory $transactionFactory,
+        Registry $registry,
+        Order $order,
+        ConvertOrder $convertOrder,
+        OrderService $orderService,
+        OrderInterface $orderInterface,
+        OrderRepositoryInterface $orderRepository,
         TransactionSearchResultInterfaceFactory $transactionSearchResultInterfaceFactory,
-        CreditmemoFactory                       $creditmemoFactory,
-        Invoice                                 $invoice,
-        OrderCollectionFactory                  $orderCollectionFactory,
-        CreditmemoService                       $creditmemoService,
-        InvoiceService                          $invoiceService,
-        StatusFactory                           $orderStatus,
-        Charge                                  $chargeHelper,
-        InvoiceHelper                           $invoiceHelper,
-        Subscription                            $subscriptionHelper,
-        Logger                                  $logger,
-        Data                                    $helper,
-        Email                                   $helperEmail,
-        CustomerSubscriptionInterfaceFactory    $customerSubscriptionFactory,
-        CustomerSubscriberInterfaceFactory      $customerSubscriberFactory,
+        CreditmemoFactory $creditmemoFactory,
+        Invoice $invoice,
+        OrderCollectionFactory $orderCollectionFactory,
+        CreditmemoService $creditmemoService,
+        InvoiceService $invoiceService,
+        StatusFactory $orderStatus,
+        Charge $chargeHelper,
+        InvoiceHelper $invoiceHelper,
+        Subscription $subscriptionHelper,
+        Logger $logger,
+        Data $helper,
+        Email $helperEmail,
+        CustomerSubscriptionInterfaceFactory $customerSubscriptionFactory,
+        CustomerSubscriberInterfaceFactory $customerSubscriberFactory,
         CustomerSubscriptionRepositoryInterface $customerSubscriptionRepository,
-        CustomerSubscriberRepositoryInterface   $customerSubscriberRepository,
-        SearchCriteriaBuilder $searchCriteriaBuilder
+        CustomerSubscriberRepositoryInterface $customerSubscriberRepository,
+        SearchCriteriaBuilder $searchCriteriaBuilder,
+        ProductRepositoryInterface $productRepository,
+        CartManagementInterface $cartManagement,
+        CustomerRepositoryInterface $customerRepository,
+        QuoteFactory $quoteFactory,
+        StoreManagerInterface $storeManager
     ) {
         $this->resultPageFactory = $resultPageFactory;
         $this->logger = $logger;
@@ -262,6 +297,11 @@ class Index extends Action
         $this->customerSubscriptionRepository = $customerSubscriptionRepository;
         $this->customerSubscriberRepository = $customerSubscriberRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->productRepository = $productRepository;
+        $this->cartManagement = $cartManagement;
+        $this->customerRepository = $customerRepository;
+        $this->quoteFactory = $quoteFactory;
+        $this->storeManager = $storeManager;
         $this->context = $context;
         parent::__construct($context);
 
@@ -492,10 +532,12 @@ class Index extends Action
                             ->addObject($invoice->getOrder());
                         $transactionSave->save();
 
-                        $this->logger->addDebug("#1 : Automatic create invoice for the order #" . $order_id . " : Invoice type => " . $_invoiceType);
+                        $this->logger->addDebug("#1 : Automatic create invoice for the order #" . $order_id .
+                            " : Invoice type => " . $_invoiceType);
                     }
 
-                    $this->logger->addDebug("Magento have created the transaction '" . $transactionData['id'] . "' already.");
+                    $this->logger->addDebug("Magento have created the transaction '" . $transactionData['id'] .
+                        "' already.");
 
                     return [
                         'status' => 200,
@@ -520,7 +562,8 @@ class Index extends Action
                             ->addObject($invoice->getOrder());
                         $transactionSave->save();
 
-                        $this->logger->addDebug("#2 : Automatic create invoice for the order #" . $order_id . " : Invoice type => " . $_invoiceType);
+                        $this->logger->addDebug("#2 : Automatic create invoice for the order #" . $order_id .
+                            " : Invoice type => " . $_invoiceType);
                     }
 
                     $this->logger->addDebug('Settled order #' . $order_id . " , transaction ID : " . $transactionID);
@@ -530,15 +573,18 @@ class Index extends Action
                         'message' => 'Settled order #' . $order_id . " , transaction ID : " . $transactionID,
                     ];
                 } else {
-                    $this->logger->addError('Cannot create capture transaction for order #' . $order_id . " , transaction : " . $transactionData['id']);
+                    $this->logger->addError('Cannot create capture transaction for order #' . $order_id .
+                        " , transaction : " . $transactionData['id']);
 
                     return [
                         'status' => 500,
-                        'message' => 'Cannot create capture transaction for order #' . $order_id . " , transaction : " . $transactionData['id'],
+                        'message' => 'Cannot create capture transaction for order #' . $order_id .
+                            " , transaction : " . $transactionData['id'],
                     ];
                 }
             } else {
-                $this->logger->addError('Cannot get transaction data from Billwerk+ : transaction ID = ' . $data['transaction']);
+                $this->logger->addError('Cannot get transaction data from Billwerk+ : transaction ID = ' .
+                    $data['transaction']);
 
                 return [
                     'status' => 500,
@@ -625,7 +671,8 @@ class Index extends Action
                 }
 
                 if ($hasTxn) {
-                    $this->logger->addDebug("Magento have created the transaction '" . $refundData['id'] . "' already.");
+                    $this->logger->addDebug("Magento have created the transaction '" .
+                        $refundData['id'] . "' already.");
                     return [
                         'status' => 200,
                         'message' => "Magento have created the transaction '" . $refundData['id'] . "' already.",
@@ -653,13 +700,16 @@ class Index extends Action
                     $creditMemo = $this->creditmemoFactory->createByInvoice($invoice, $creditMemoData);
                     if ($isPartial) {
                         if ($creditMemo->getGrandTotal() < $refundAmount) {
-                            $creditMemoData['adjustment_positive'] = round($refundAmount - $creditMemo->getGrandTotal(), 2);
+                            $creditMemoData['adjustment_positive'] =
+                                round($refundAmount - $creditMemo->getGrandTotal(), 2);
                         } elseif ($creditMemo->getGrandTotal() > $refundAmount) {
-                            $creditMemoData['adjustment_negative'] = round($creditMemo->getGrandTotal() - $refundAmount, 2);
+                            $creditMemoData['adjustment_negative'] =
+                                round($creditMemo->getGrandTotal() - $refundAmount, 2);
                         }
                     } else {
                         if ($creditMemo->getGrandTotal() > $availableAmount) {
-                            $creditMemoData['adjustment_negative'] = round($creditMemo->getGrandTotal() - $availableAmount, 2);
+                            $creditMemoData['adjustment_negative'] =
+                                round($creditMemo->getGrandTotal() - $availableAmount, 2);
                         }
                     }
                     $creditMemo = $this->creditmemoFactory->createByInvoice($invoice, $creditMemoData);
@@ -676,32 +726,39 @@ class Index extends Action
                     $this->helper->setReepayPaymentState($order->getPayment(), 'refunded');
                     $order->save();
 
-                    $this->logger->addDebug('Refunded order #' . $orderId . " ,CreditMemo #'. $creditMemoIncrementId . ', transaction ID : " . $transactionID);
+                    $this->logger->addDebug('Refunded order #' . $orderId . " ,CreditMemo #'.
+                    $creditMemoIncrementId . ', transaction ID : " . $transactionID);
 
                     return [
                         'status' => 200,
-                        'message' => 'Refunded order #' . $orderId . " ,CreditMemo #'. $creditMemoIncrementId . ', transaction ID : " . $transactionID,
+                        'message' => 'Refunded order #' . $orderId . " ,CreditMemo #'. $creditMemoIncrementId .
+                        ', transaction ID : " . $transactionID,
                     ];
                 } elseif ($transactionID) {
                     $this->helper->setReepayPaymentState($order->getPayment(), 'refunded');
                     $order->save();
-                    $this->logger->addDebug('Refunded order #' . $orderId . " , transaction ID : " . $transactionID);
+                    $this->logger->addDebug('Refunded order #' . $orderId . " , transaction ID : " .
+                        $transactionID);
                     return [
                         'status' => 200,
                         'message' => 'Refunded order #' . $orderId . " , transaction ID : " . $transactionID,
                     ];
                 } else {
-                    $this->logger->addError('Cannot create refund transaction for order #' . $orderId . " , transaction : " . $refundData['id']);
+                    $this->logger->addError('Cannot create refund transaction for order #' . $orderId .
+                        " , transaction : " . $refundData['id']);
                     return [
                         'status' => 500,
-                        'message' => 'Cannot create refund transaction for order #' . $orderId . " , transaction : " . $refundData['id'],
+                        'message' => 'Cannot create refund transaction for order #' . $orderId . " , transaction : " .
+                            $refundData['id'],
                     ];
                 }
             } else {
-                $this->logger->addError('Cannot get refund transaction data from Billwerk+ : transaction ID = ' . $data['transaction']);
+                $this->logger->addError('Cannot get refund transaction data from Billwerk+ : transaction ID = '
+                    . $data['transaction']);
                 return [
                     'status' => 500,
-                    'message' => 'Cannot get refund transaction data from Billwerk+ : transaction ID = ' . $data['transaction'],
+                    'message' => 'Cannot get refund transaction data from Billwerk+ : transaction ID = ' .
+                        $data['transaction'],
                 ];
             }
         } catch (Exception $e) {
@@ -889,16 +946,6 @@ class Index extends Action
     protected function subscriptionRenewal($data)
     {
         try {
-            $storeManager = $this->context->getObjectManager()->get(\Magento\Store\Model\StoreManagerInterface::class);
-            $quoteFactory = $this->context->getObjectManager()->get(\Magento\Quote\Model\QuoteFactory::class);
-            $customerRepository = $this->context->getObjectManager()
-                ->get(\Magento\Customer\Api\CustomerRepositoryInterface::class);
-            $productFactory = $this->context->getObjectManager()->get(\Magento\Catalog\Model\ProductFactory::class);
-            /** @var \Magento\Quote\Model\QuoteManagement $quoteManagement */
-            $quoteManagement = $this->context->getObjectManager()->get(\Magento\Quote\Model\QuoteManagement::class);
-            /** @var \Magento\Catalog\Api\ProductRepositoryInterface $productRepository */
-            $productRepository= $this->context->getObjectManager()->get(\Magento\Catalog\Api\ProductRepositoryInterface::class);
-
             $this->registry->register('billwerk_subscription_webhook', true);
             $this->registry->register('billwerk_subscription_webhook_renewal_order', true);
 
@@ -924,7 +971,7 @@ class Index extends Action
             }
 
             $baseOrder = $this->orderRepository->get($baseOrderId);
-            $baseQuote = $quoteFactory->create()->load($baseOrder->getQuoteId());
+            $baseQuote = $this->quoteFactory->create()->load($baseOrder->getQuoteId());
 
             $apiKey = $this->helper->getApiKey($baseOrder->getStoreId());
             $invoice = $this->invoiceHelper->get($apiKey, $data['invoice']);
@@ -943,49 +990,45 @@ class Index extends Action
                 $productIds[$item->getProductId()] = $item->getQtyOrdered();
                 $productOptions[$item->getProductId()] = null;
                 $options = $item->getProductOptions();
-                if(isset($options['info_buyRequest']['options']) &&
-                    is_array($options['info_buyRequest']['options'])){
+                if (isset($options['info_buyRequest']['options']) &&
+                    is_array($options['info_buyRequest']['options'])) {
                     $productOptions[$item->getProductId()] = $options['info_buyRequest']['options'];
                 }
             }
 
-            $store = $storeManager->getStore($baseOrder->getStoreId());
+            $store = $this->storeManager->getStore($baseOrder->getStoreId());
 
-            /** @var Quote $quote */
-            $quote = $quoteFactory->create();
+            $quote = $this->quoteFactory->create();
             $quote->setStore($store);
 
             $this->logger->addDebug(__METHOD__, [$baseOrder->getCustomerId(), $baseOrder->getEntityId()]);
 
-            $customer = $customerRepository->getById($baseOrder->getCustomerId());
+            $customer = $this->customerRepository->getById($baseOrder->getCustomerId());
             $quote->setCurrency();
-
             $quote->assignCustomer($customer);
-
-            $customPrice = $invoice['amount'] / 100;
-
             $quote->setSendConfirmation(0);
             $quote->save();
+
             foreach ($productIds as $id => $qty) {
-                $product = $productRepository->getById($id);
+                $product = $this->productRepository->getById($id);
                 if ($product->getBillwerkSubEnabled() && $product->getBillwerkSubPlan()
                     && !empty($product->getBillwerkSubPlan())) {
                     $options = $productOptions[$id];
-                    if($options) {
+                    if ($options) {
                         $quote->addProduct($product, new \Magento\Framework\DataObject([
                             'qty' => (int)$qty,
                             'options' => $options
                         ]));
-                    }else{
+                    } else {
                         $quote->addProduct($product, (int)$qty);
                     }
                 }
             }
-
             $quote->save();
 
+            $customPrice = $invoice['amount'] / 100;
             foreach ($productIds as $id => $qty) {
-                $product = $productRepository->getById($id);
+                $product = $this->productRepository->getById($id);
                 if ($product->getBillwerkSubEnabled() && $product->getBillwerkSubPlan()
                     && !empty($product->getBillwerkSubPlan())) {
                     $productItem = $quote->getItemByProduct($product);
@@ -1015,7 +1058,11 @@ class Index extends Action
 
             $quote->setTotalsCollectedFlag(false)->collectTotals()->save();
 
-            $service = $quoteManagement->submit($quote);
+            $quote->setTotalsCollectedFlag(false);
+            $quote->collectTotals()
+                ->save();
+
+            $service = $this->cartManagement->submit($quote);
             $increment_id = $service->getRealOrderId();
             $orderId = $service->getId();
 
@@ -1184,7 +1231,8 @@ class Index extends Action
                 if (isset($invoice)) {
                     return [
                         'status' => 200,
-                        'message' => 'created invoice #' . $invoice->getId() . ' and shipment #' . $orderShipment->getId(),
+                        'message' => 'created invoice #' . $invoice->getId() . ' and shipment #' .
+                            $orderShipment->getId(),
                     ];
                 } else {
                     return [

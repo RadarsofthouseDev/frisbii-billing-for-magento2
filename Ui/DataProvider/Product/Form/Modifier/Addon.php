@@ -18,8 +18,7 @@ class Addon extends AbstractModifier
 
     public function __construct(
         \Radarsofthouse\BillwerkPlusSubscription\Model\Config\Source\Addon $addon
-    )
-    {
+    ) {
         $this->addon = $addon;
     }
 
@@ -99,6 +98,5 @@ class Addon extends AbstractModifier
                 ],
             ],
         ];
-
     }
 }

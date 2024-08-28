@@ -47,7 +47,11 @@ $productRepository = $objectManager->get('\Magento\Catalog\Api\ProductRepository
                     </td>
                     <td class="item-qty"><?= (float) $_item->getQtyOrdered() ?></td>
                     <td class="item-price"><?php
-                        $product = $productRepository->get($_item->getSku());
+                        try {
+                            $product = $productRepository->getById($_item->getProductId());
+                        } catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
+                            continue;
+                        }
                         $subEnabled = $product->getBillwerkSubEnabled();
                         $planHandle = $product->getBillwerkSubPlan();
                         if($subEnabled && $planHandle){

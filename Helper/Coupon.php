@@ -12,9 +12,9 @@ use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Radarsofthouse\BillwerkPlusSubscription\Client\Api;
 
-class Customer extends AbstractHelper
+class Coupon extends AbstractHelper
 {
-    public const ENDPOINT = 'customer';
+    public const ENDPOINT = 'coupon';
 
     /**
      * @var Api
@@ -42,18 +42,18 @@ class Customer extends AbstractHelper
     }
 
     /**
-     * Get customer by email.
+     * Search discount by code.
      *
      * @param string $apiKey
-     * @param string $email
+     * @param string $code
      * @return false|string
      * @throws GuzzleException
      */
-    public function search($apiKey, $email)
+    public function search($apiKey, $code)
     {
-        $log = ['param' => ['email' => $email]];
-        if (empty($email)) {
-            $log['input_error'] = 'empty email.';
+        $log = ['param' => ['handle' => $code]];
+        if (empty($code)) {
+            $log['input_error'] = 'empty code.';
             $this->logger->addInfo(__METHOD__, $log, true);
             return false;
         }
@@ -61,7 +61,8 @@ class Customer extends AbstractHelper
             'size' => 10,
             'range' => 'created',
             'from' => '1970-01-01',
-            'email' => "$email",
+            'state' => 'active',
+            'code' => "$code",
         ];
         try {
             $response = $this->client->get($apiKey, 'list/' . self::ENDPOINT, $param);
@@ -69,9 +70,7 @@ class Customer extends AbstractHelper
             $this->logger->addInfo(__METHOD__, $log, true);
             if ($this->client->success() && array_key_exists('count', $response) && (int)$response['count'] > 0) {
                 foreach ($response['content'] as $index => $item) {
-                    if (!array_key_exists('deleted', $item) || empty($item['deleted'])) {
-                        return $item['handle'];
-                    }
+                    return $item['handle'];
                 }
             }
         } catch (\Exception $e) {
@@ -84,7 +83,7 @@ class Customer extends AbstractHelper
     }
 
     /**
-     * Get customer by handle.
+     * Get discount by handle.
      *
      * @param string $apiKey
      * @param string $handle
@@ -94,11 +93,56 @@ class Customer extends AbstractHelper
     public function get($apiKey, $handle)
     {
         $log = ['param' => ['handle' => $handle]];
-        $response = $this->client->get($apiKey, self::ENDPOINT . "/$handle");
+        $response = $this->client->get($apiKey, self::ENDPOINT . "/$handle/current");
         if ($this->client->success()) {
             $log['response'] = $response;
             $this->logger->addInfo(__METHOD__, $log, true);
             return $response;
+        } else {
+            $log['http_errors'] = $this->client->getHttpError();
+            $log['response_errors'] = $this->client->getErrors();
+            $this->logger->addError(__METHOD__, $log, true);
+            return false;
+        }
+    }
+
+    /**
+     * Validate coupon code.
+     *
+     * @param string $apiKey
+     * @param string $code
+     * @param array $optional
+     * @return bool|mixed
+     * @throws GuzzleException
+     */
+    public function validate($apiKey, $code, $optional = [])
+    {
+        $log = ['param' => ['code' => $code]];
+        if (empty($code)) {
+            $log['input_error'] = 'empty code.';
+            $this->logger->addInfo(__METHOD__, $log, true);
+            return false;
+        }
+
+        $param = ['code' => "$code"];
+
+        if (array_key_exists('plan', $optional) && !empty($optional['plan'])) {
+            $param['plan'] = $optional['plan'];
+        }
+
+        if (array_key_exists('customer', $optional) && !empty($optional['customer'])) {
+            $param['customer'] = $optional['customer'];
+        }
+
+        if (array_key_exists('subscription', $optional) && !empty($optional['subscription'])) {
+            $param['plan'] = $optional['subscription'];
+        }
+
+        $response = $this->client->get($apiKey, self::ENDPOINT . "/code/validate", $param);
+        if ($this->client->success()) {
+            $log['response'] = $response;
+            $this->logger->addInfo(__METHOD__, $log, true);
+            return true;
         } else {
             $log['http_errors'] = $this->client->getHttpError();
             $log['response_errors'] = $this->client->getErrors();

@@ -53,7 +53,7 @@ class MethodIsActive implements \Magento\Framework\Event\ObserverInterface
 
     /**
      * Check if the cart has a subscription product
-     * 
+     *
      * @return bool
      */
     protected function _hasBillwerkSubscriptionProduct()
