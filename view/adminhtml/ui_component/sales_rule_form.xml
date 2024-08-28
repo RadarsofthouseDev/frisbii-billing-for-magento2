@@ -10,7 +10,7 @@
             </argument>
             <settings>
                 <notice translate="true">
-                    Discount handle when "No Coupon" or "Use Auto Generation Coupon".
+                    Discount handle when "No Coupon".
                 </notice>
                 <dataType>string</dataType>
                 <label translate="true">Billwerk+ Discount handle</label>
