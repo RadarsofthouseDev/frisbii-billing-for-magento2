@@ -19,8 +19,8 @@
                 <order_confirmation_email_template>billwerk_subscription_order_confirmation</order_confirmation_email_template>
                 <allowspecific/>
                 <specificcountry/>
-                <allowwed_payment>card,dankort,visa,visa_dk,visa_elec,mc,amex,mobilepay_subscriptions,vipps_recurring,diners,maestro,laser,discover,jcb,china_union_pay,ffk,applepay,bank_transfer,cash,other</allowwed_payment>
-                <payment_icons>american-express,dankort,diners-club-international,discover,forbrugsforeningen,jcb,maestro,mastercard,mobilepay,unionpay,visa,visa-electron,applepay,vipps</payment_icons>
+                <allowwed_payment>card,dankort,visa,visa_dk,visa_elec,mc,amex,vipps_recurring,diners,maestro,laser,discover,jcb,china_union_pay,ffk,applepay,bank_transfer,cash,other</allowwed_payment>
+                <payment_icons>american-express,dankort,diners-club-international,discover,forbrugsforeningen,jcb,maestro,mastercard,unionpay,visa,visa-electron,applepay,vipps</payment_icons>
                 <payment_link>payment_reepay_payment_payment_link</payment_link>
                 <sort_order>0</sort_order>
                 <enable_self_pause>1</enable_self_pause>

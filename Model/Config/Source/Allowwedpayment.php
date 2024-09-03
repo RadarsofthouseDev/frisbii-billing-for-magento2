@@ -24,7 +24,7 @@ class Allowwedpayment implements \Magento\Framework\Option\ArrayInterface
             ['value' => 'mc', 'label' => __('MasterCard')],
             ['value' => 'amex', 'label' => __('American Express')],
             ['value' => 'mobilepay_subscriptions', 'label' => __('MobilePay Subscriptions')],
-            ['value' => 'vipps_recurring', 'label' => __('Vipps Recurring')],
+            ['value' => 'vipps_recurring', 'label' => __('Vipps MobilePay Recurring')],
             ['value' => 'diners', 'label' => __('Diners Club')],
             ['value' => 'maestro', 'label' => __('Maestro')],
             ['value' => 'laser', 'label' => __('Laser')],

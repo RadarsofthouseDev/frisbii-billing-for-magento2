@@ -49,7 +49,7 @@
                 </field>
                 <field id="allowwed_payment" type="multiselect" sortOrder="20" showInDefault="1" showInStore="1" showInWebsite="1" translate="label" >
                     <label>Allowed Payment Methods</label>
-                    <comment/>
+                    <comment>MobilePay Subscription has been discontinued following the merger of MobilePay and Vipps. Please switch to using Vipps MobilePay Recurring instead.</comment>
                     <source_model>Radarsofthouse\BillwerkPlusSubscription\Model\Config\Source\Allowwedpayment</source_model>
                     <config_path>payment/billwerkplus_subscription/allowwed_payment</config_path>
                 </field>
