@@ -80,7 +80,7 @@ class ConfigChangeObserver implements ObserverInterface
         $allowedPaymentPath = 'payment/billwerkplus_subscription/allowwed_payment';
         $allowedPayment = $this->_scopeConfig->getValue($allowedPaymentPath, $scope, $scopeId);
         if(strpos($allowedPayment, 'mobilepay_subscriptions') !== false) {
-            $this->_messageManager->addNoticeMessage(_('MobilePay Subscription has been discontinued following the merger of MobilePay and Vipps. Please switch to using Vipps MobilePay Recurring instead.'));
+            $this->_messageManager->addWarningMessage(_('MobilePay Subscription has been discontinued following the merger of MobilePay and Vipps. Please switch to using Vipps MobilePay Recurring instead.'));
         }
 
     }
