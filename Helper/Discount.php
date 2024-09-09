@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace Radarsofthouse\BillwerkPlusSubscription\Helper;
 
+use Throwable;
 use GuzzleHttp\Exception\GuzzleException;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
@@ -42,6 +43,39 @@ class Discount extends AbstractHelper
     }
 
     /**
+     *  Get discount list.
+     *
+     * @param string $apiKey
+     * @param null|string $nextPageToken
+     * @return array
+     */
+    public function list(string $apiKey, $nextPageToken = null)
+    {
+        $result = [];
+        try {
+            $param = [
+                'size' => 100,
+                'from' => "1970-01-01",
+                'state' => "active",
+            ];
+            if (null !== $nextPageToken) {
+                $param['next_page_token'] = $nextPageToken;
+            }
+            $response = $this->client->get($apiKey, 'list/'. self::ENDPOINT, $param);
+            if ($this->client->success() && array_key_exists('next_page_token', $response)) {
+                $result = $response['content'];
+                $nexPageResult = $this->list($apiKey, $response['next_page_token']);
+                $result = array_merge($result, $nexPageResult);
+            } elseif ($this->client->success() && array_key_exists('count', $response) && (int)$response['count'] > 0) {
+                $result = $response['content'];
+            }
+        } catch (Throwable $e) {
+            return [];
+        }
+        return $result;
+    }
+
+    /**
      * Search discount by handle.
      *
      * @param string $apiKey
@@ -52,8 +86,8 @@ class Discount extends AbstractHelper
     public function search($apiKey, $handle)
     {
         $log = ['param' => ['handle' => $handle]];
-        if (empty($email)) {
-            $log['input_error'] = 'empty email.';
+        if (empty($handle)) {
+            $log['input_error'] = 'empty handle.';
             $this->logger->addInfo(__METHOD__, $log, true);
             return false;
         }

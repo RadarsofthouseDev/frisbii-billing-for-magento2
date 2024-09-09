@@ -130,4 +130,7 @@
     <type name="Magento\SalesRule\Model\RulesApplier">
         <plugin name="Radarsofthouse_BillwerkPlusSubscription_Plugin_Magento_SalesRule_Model_RulesApplier" type="Radarsofthouse\BillwerkPlusSubscription\Plugin\SalesRule\Model\RulesApplier" />
     </type>
+    <type name="Magento\SalesRule\Model\Rule\Metadata\ValueProvider">
+        <plugin name="Radarsofthouse_BillwerkPlusSubscription_Plugin_Magento_SalesRule_Model_Rule_Metadata_ValueProvider" type="Radarsofthouse\BillwerkPlusSubscription\Plugin\SalesRule\Model\Rule\Metadata\ValueProvider" sortOrder="10" disabled="false"/>
+    </type>
 </config>
