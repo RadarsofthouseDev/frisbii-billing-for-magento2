@@ -1,4 +1,8 @@
 # Changelog
+## Version 1.0.8 on 10 September 2024
+- Name change payment method "Vipps Recurring" to "Vipps MobilePay Recurring"
+- Warning message added for "MobilePay Subscription" to encourage switch to using "Vipps MobilePay Recurring" instead
+
 ## Version 1.0.7 on 19 August 2024
 - Fixed the error: "Identical operator === is not used for testing the return value of strpos function"
 
