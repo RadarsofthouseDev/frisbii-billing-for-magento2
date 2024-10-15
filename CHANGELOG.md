@@ -1,4 +1,7 @@
 # Changelog
+## Version 1.0.9 on 15 October 2024
+- Fixed the error when saving the module configuration in the store or website scopes.
+
 ## Version 1.0.8 on 10 September 2024
 - Name change payment method "Vipps Recurring" to "Vipps MobilePay Recurring"
 - Warning message added for "MobilePay Subscription" to encourage switch to using "Vipps MobilePay Recurring" instead
