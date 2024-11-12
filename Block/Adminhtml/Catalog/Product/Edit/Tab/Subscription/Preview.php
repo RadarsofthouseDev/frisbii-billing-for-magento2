@@ -100,8 +100,10 @@ class Preview extends Widget
                 'enabled' => true,
                 'amount' => (int)$plan['setup_fee'] / 100,
                 'text' => !empty($plan['setup_fee_text']) ? $plan['setup_fee_text'] : '',
-                'handling' => $plan['setup_fee_handling'],
             ];
+            if(array_key_exists('setup_fee_handling', $plan)){
+                $fee['handling'] = $plan['setup_fee_handling'];
+            }
             $result['setup_fee'] = $fee;
         }
 

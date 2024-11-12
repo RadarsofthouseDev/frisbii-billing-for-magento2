@@ -1,4 +1,8 @@
 # Changelog
+## Version 1.0.10 on 12 November 2024
+- Fixed the error for guzzlehttp/guzzle 7.8.2+
+- Added validation for optional fields in subscription plan response to prevent errors when values are empty
+
 ## Version 1.0.9 on 15 October 2024
 - Fixed the error when saving the module configuration in the store or website scopes.
 

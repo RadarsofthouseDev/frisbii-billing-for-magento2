@@ -155,6 +155,7 @@ $plans = $block->getPlans();
                                 <td><?php echo __('Text') ?></td>
                                 <td><?php echo $plan['setup_fee']['text']; ?></td>
                             </tr>
+                            <?php if(array_key_exists('handling',$plan['setup_fee'])): ?>
                             <tr title="">
                                 <td><?php echo __('Handling') ?></td>
                                 <td>
@@ -164,12 +165,13 @@ $plans = $block->getPlans();
                                     } elseif ('separate' === $plan['setup_fee']['handling']) {
                                         echo __('Create a separate invoice for the setup fee');
                                     } elseif ('separate_conditional' === $plan['setup_fee']['handling']) {
-                                        echo __('Create a separate invoice for the setup fee, 
+                                        echo __('Create a separate invoice for the setup fee,
                                         if the first invoice is not created in conjunction with the creation');
                                     }
                                     ?>
                                 </td>
                             </tr>
+                            <?php endif; ?>
                         <?php endif; ?>
                     <?php endif; ?>
                     <?php if (isset($plan['trial']['type'])): ?>
