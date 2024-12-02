@@ -7,14 +7,15 @@ declare(strict_types=1);
 
 namespace Radarsofthouse\BillwerkPlusSubscription\Helper;
 
+use Throwable;
 use GuzzleHttp\Exception\GuzzleException;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Radarsofthouse\BillwerkPlusSubscription\Client\Api;
 
-class Customer extends AbstractHelper
+class Discount extends AbstractHelper
 {
-    public const ENDPOINT = 'customer';
+    public const ENDPOINT = 'discount';
 
     /**
      * @var Api
@@ -42,18 +43,51 @@ class Customer extends AbstractHelper
     }
 
     /**
-     * Get customer by email.
+     *  Get discount list.
      *
      * @param string $apiKey
-     * @param string $email
+     * @param null|string $nextPageToken
+     * @return array
+     */
+    public function list(string $apiKey, $nextPageToken = null)
+    {
+        $result = [];
+        try {
+            $param = [
+                'size' => 100,
+                'from' => "1970-01-01",
+                'state' => "active",
+            ];
+            if (null !== $nextPageToken) {
+                $param['next_page_token'] = $nextPageToken;
+            }
+            $response = $this->client->get($apiKey, 'list/'. self::ENDPOINT, $param);
+            if ($this->client->success() && array_key_exists('next_page_token', $response)) {
+                $result = $response['content'];
+                $nexPageResult = $this->list($apiKey, $response['next_page_token']);
+                $result = array_merge($result, $nexPageResult);
+            } elseif ($this->client->success() && array_key_exists('count', $response) && (int)$response['count'] > 0) {
+                $result = $response['content'];
+            }
+        } catch (Throwable $e) {
+            return [];
+        }
+        return $result;
+    }
+
+    /**
+     * Search discount by handle.
+     *
+     * @param string $apiKey
+     * @param string $handle
      * @return false|string
      * @throws GuzzleException
      */
-    public function search($apiKey, $email)
+    public function search($apiKey, $handle)
     {
-        $log = ['param' => ['email' => $email]];
-        if (empty($email)) {
-            $log['input_error'] = 'empty email.';
+        $log = ['param' => ['handle' => $handle]];
+        if (empty($handle)) {
+            $log['input_error'] = 'empty handle.';
             $this->logger->addInfo(__METHOD__, $log, true);
             return false;
         }
@@ -61,7 +95,8 @@ class Customer extends AbstractHelper
             'size' => 10,
             'range' => 'created',
             'from' => '1970-01-01',
-            'email' => "$email",
+            'state' => 'active',
+            'handle' => "$handle",
         ];
         try {
             $response = $this->client->get($apiKey, 'list/' . self::ENDPOINT, $param);
@@ -84,7 +119,7 @@ class Customer extends AbstractHelper
     }
 
     /**
-     * Get customer by handle.
+     * Get discount by handle.
      *
      * @param string $apiKey
      * @param string $handle

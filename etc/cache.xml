@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Cache/etc/cache.xsd">
+    <type name="billwerk_plus_optimize_cache" translate="label,description" instance="Radarsofthouse\BillwerkPlusSubscription\Model\Cache">
+        <label>Billwerk+ Optimize</label>
+        <description>Store product plan</description>
+    </type>
+</config>

@@ -67,6 +67,10 @@
         <column name="billwerk_sub_inv_handle" nullable="true" xsi:type="varchar" comment="Billwerk+ Subscription Invoice Handle" length="255"/>
     </table>
     <table name="catalog_product_option_type_value">
-        <column name="billwerk_addon_handle" nullable="true" xsi:type="varchar" comment="Billwerk+ Order Type" length="255"/>
+        <column name="billwerk_addon_handle" nullable="true" xsi:type="varchar" comment="Billwerk+ addon handle" length="255"/>
+    </table>
+    <table name="salesrule">
+        <column name="billwerk_discount_handle" nullable="true" xsi:type="varchar" comment="Billwerk+ discount handle" length="255"/>
+        <column name="billwerk_coupon_code" nullable="true" xsi:type="varchar" comment="Billwerk+ coupon code" length="255"/>
     </table>
 </schema>

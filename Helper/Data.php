@@ -25,6 +25,10 @@ use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Radarsofthouse\BillwerkPlusSubscription\Model\StatusFactory;
 use Magento\Catalog\Model\Product;
+use Radarsofthouse\BillwerkPlusSubscription\Model\Cache;
+use Magento\Framework\App\CacheInterface;
+use Magento\Framework\Serialize\SerializerInterface;
+use Radarsofthouse\BillwerkPlusSubscription\Helper\Plan as PlanHelper;
 
 class Data extends AbstractHelper
 {
@@ -62,6 +66,21 @@ class Data extends AbstractHelper
     protected $orderStatusFactory;
 
     /**
+     * @var CacheInterface
+     */
+    private $cache;
+
+    /**
+     * @var SerializerInterface
+     */
+    private $serializer;
+
+    /**
+     * @var PlanHelper
+     */
+    private $planHelper;
+
+    /**
      * @param Context $context
      * @param ScopeConfigInterface $scopeConfig
      * @param StoreManagerInterface $storeManager
@@ -69,6 +88,9 @@ class Data extends AbstractHelper
      * @param BuilderInterface $transactionBuilder
      * @param PriceHelper $priceHelper
      * @param StatusFactory $orderStatusFactory
+     * @param CacheInterface $cache
+     * @param SerializerInterface $serializer
+     * @param PlanHelper $planHelper
      */
     public function __construct(
         Context                    $context,
@@ -77,7 +99,10 @@ class Data extends AbstractHelper
         ProductRepositoryInterface $productRepository,
         BuilderInterface           $transactionBuilder,
         PriceHelper                $priceHelper,
-        StatusFactory              $orderStatusFactory
+        StatusFactory              $orderStatusFactory,
+        CacheInterface             $cache,
+        SerializerInterface        $serializer,
+        PlanHelper                 $planHelper
     ) {
         parent::__construct($context);
         $this->scopeConfig = $scopeConfig;
@@ -86,6 +111,9 @@ class Data extends AbstractHelper
         $this->transactionBuilder = $transactionBuilder;
         $this->priceHelper = $priceHelper;
         $this->orderStatusFactory = $orderStatusFactory;
+        $this->cache = $cache;
+        $this->serializer = $serializer;
+        $this->planHelper = $planHelper;
     }
 
     /**
@@ -750,5 +778,146 @@ class Data extends AbstractHelper
             return false;
         }
         return false;
+    }
+
+    /**
+     * Prepare subscription data.
+     *
+     * @param  array $plan
+     * @return string
+     */
+    public function getPlanSchedule($plan)
+    {
+        $result = '';
+
+        if (!empty($plan['schedule_type'])) {
+            $type = $plan['schedule_type'];
+            if (
+                !empty($plan['schedule_fixed_day']) && !empty($plan['interval_length'])
+                && $plan['schedule_type'] == 'month_fixedday'
+            ) {
+                if ($plan['schedule_fixed_day'] == 28) {
+                    $type = 'ultimo';
+                } elseif ($plan['schedule_fixed_day'] == 1) {
+                    if ($plan['interval_length'] == 3) {
+                        $type = 'primo';
+                    } elseif ($plan['interval_length'] == 6) {
+                        $type = 'half_yearly';
+                    } elseif ($plan['interval_length'] == 12) {
+                        $type = 'month_startdate_12';
+                    }
+                }
+            }
+            $scheduleText = $this->planScheduleTypeText($type);
+            if (!empty($scheduleText)) {
+                $result = '/' . ($plan['interval_length'] > 1 ? "{$plan['interval_length']} {$scheduleText}s" : "$scheduleText");
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     *  Map schedule type to Text
+     *
+     * @param string $type
+     * @return mixed|string
+     */
+    public function planScheduleTypeText($type)
+    {
+        $scheduleTypeText = [
+            'daily' => __('Day', 'Radarsofthouse_BillwerkPlusSubscription'),
+            'month_startdate' => __('Month', 'Radarsofthouse_BillwerkPlusSubscription'),
+            'month_fixedday' => __('Month', 'Radarsofthouse_BillwerkPlusSubscription'),
+            'month_lastday' => __('Month', 'Radarsofthouse_BillwerkPlusSubscription'),
+            'primo' => __('Quarter', 'Radarsofthouse_BillwerkPlusSubscription'),
+            'ultimo' => __('Quarter', 'Radarsofthouse_BillwerkPlusSubscription'),
+            'half_yearly' => __('Half-year', 'Radarsofthouse_BillwerkPlusSubscription'),
+            'month_startdate_12' => __('Year', 'Radarsofthouse_BillwerkPlusSubscription'),
+            'weekly_fixedday' => __('Week', 'Radarsofthouse_BillwerkPlusSubscription'),
+        ];
+        return $scheduleTypeText[$type] ?? '';
+    }
+
+    /**
+     * Get plan label.
+     *
+     * @param Product $product
+     * @return mixed|string
+     */
+    public function getLabel($product)
+    {
+        $planHandle = $product->getData('billwerk_sub_plan');
+        if ($product->getData('billwerk_sub_enabled') && $planHandle) {
+            try {
+                $storeId = $this->storeManager->getStore()->getId();
+                $data = $this->loadPlansFromCache($storeId);
+                if (empty($data)) {
+                    $data = $this->createPlansCache($storeId);
+                }
+                if ($data && isset($data[$planHandle])) {
+                    return $data[$planHandle];
+                }
+            } catch (NoSuchEntityException $e) {
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * Load Cache
+     *
+     * @param $storeId
+     * @return array
+     */
+    private function loadPlansFromCache($storeId = null)
+    {
+        $data = [];
+        $cacheKey = Cache::TYPE_IDENTIFIER;
+        $serialize = $this->cache->load($cacheKey);
+        if (!empty($serialize)) {
+            $unSerialize = $this->serializer->unserialize($serialize);
+            $data = $storeId ? ($unSerialize[$storeId] ?? []) : $unSerialize;
+        }
+        return $data;
+    }
+
+    /**
+     * Refresh cache
+     *
+     * @param $storeId
+     * @return array
+     */
+    private function createPlansCache($storeId)
+    {
+        try {
+            $apiKey = $this->getApiKey($storeId);
+            $plans = $this->planHelper->getList($apiKey);
+        } catch (NoSuchEntityException $e) {
+            return [];
+        }
+
+        $cacheData = [];
+        if (!empty($plans)) {
+            foreach ($plans as $plan) {
+                $cacheData[$plan['handle']] = '';
+                $converted = $this->getPlanSchedule($plan);
+                if (!empty($converted)) {
+                    $cacheData[$plan['handle']] = $converted;
+                }
+            }
+            $cacheKey = Cache::TYPE_IDENTIFIER;
+            $cacheTag = Cache::CACHE_TAG;
+            $currentCacheData = $this->loadPlansFromCache();
+            $currentCacheData[$storeId] = $cacheData;
+            $this->cache->save(
+                $this->serializer->serialize($currentCacheData),
+                $cacheKey,
+                [$cacheTag],
+                86400
+            );
+        }
+        return $cacheData;
     }
 }

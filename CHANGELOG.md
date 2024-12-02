@@ -1,4 +1,8 @@
 # Changelog
+## Version 1.0.11 on 2 December 2024
+- Supported Billwerk+ Discount: Implemented new options, "Billwerk+ Coupon Code" and "Billwerk+ Discount Handle" in the Magento cart price rule settings.
+- Displayed the subscription frequency next to the product price of subscription products.
+
 ## Version 1.0.10 on 12 November 2024
 - Fixed the error for guzzlehttp/guzzle 7.8.2+
 - Added validation for optional fields in subscription plan response to prevent errors when values are empty

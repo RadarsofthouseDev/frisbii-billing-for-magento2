@@ -9,7 +9,9 @@ declare(strict_types=1);
 
 namespace Radarsofthouse\BillwerkPlusSubscription\Helper;
 
+use Exception;
 use GuzzleHttp\Exception\GuzzleException;
+use Magento\Catalog\Api\ProductCustomOptionRepositoryInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Framework\App\Helper\AbstractHelper;
@@ -18,13 +20,16 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Locale\Resolver;
 use Magento\Framework\UrlInterface;
+use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\Data\OrderItemInterface;
 use Magento\Sales\Model\Order;
+use Magento\SalesRule\Api\RuleRepositoryInterface;
 use Magento\Store\Model\StoreManagerInterface;
-use Exception;
 use Radarsofthouse\BillwerkPlusSubscription\Api\CustomerSubscriberRepositoryInterface;
 use Radarsofthouse\BillwerkPlusSubscription\Api\Data\SessionInterface;
 use Radarsofthouse\BillwerkPlusSubscription\Api\Data\SessionInterfaceFactory;
 use Radarsofthouse\BillwerkPlusSubscription\Api\SessionRepositoryInterface;
+use Throwable;
 
 class Payment extends AbstractHelper
 {
@@ -89,6 +94,26 @@ class Payment extends AbstractHelper
     protected $productRepository;
 
     /**
+     * @var ProductCustomOptionRepositoryInterface
+     */
+    protected $productCustomOptionRepository;
+
+    /**
+     * @var Discount
+     */
+    protected $discountHelper;
+
+    /**
+     * @var Coupon
+     */
+    protected $couponHelper;
+
+    /**
+     * @var RuleRepositoryInterface
+     */
+    protected $ruleRepository;
+
+    /**
      * @var string[]
      */
     protected $localMapping = [
@@ -121,6 +146,11 @@ class Payment extends AbstractHelper
     ];
 
     /**
+     * @var Logger
+     */
+    protected $logger;
+
+    /**
      * @param Context $context
      * @param Resolver $resolver
      * @param UrlInterface $urlInterface
@@ -133,20 +163,30 @@ class Payment extends AbstractHelper
      * @param SessionInterfaceFactory $paymentSessionFactory
      * @param SessionRepositoryInterface $paymentSessionRepository
      * @param ProductRepositoryInterface $productRepository
+     * @param ProductCustomOptionRepositoryInterface $productCustomOptionRepository
+     * @param Discount $discountHelper
+     * @param Coupon $couponHelper
+     * @param RuleRepositoryInterface $ruleRepository
+     * @param Logger $logger
      */
     public function __construct(
-        Context                               $context,
-        Resolver                              $resolver,
-        UrlInterface                          $urlInterface,
-        CustomerSession                       $customerSession,
-        StoreManagerInterface                 $storeManager,
-        Data                                  $helper,
-        Session                               $sessionHelper,
-        Customer                              $customerHelper,
+        Context $context,
+        Resolver $resolver,
+        UrlInterface $urlInterface,
+        CustomerSession $customerSession,
+        StoreManagerInterface $storeManager,
+        Data $helper,
+        Session $sessionHelper,
+        Customer $customerHelper,
         CustomerSubscriberRepositoryInterface $customerSubscriberRepository,
-        SessionInterfaceFactory               $paymentSessionFactory,
-        SessionRepositoryInterface            $paymentSessionRepository,
-        ProductRepositoryInterface            $productRepository
+        SessionInterfaceFactory $paymentSessionFactory,
+        SessionRepositoryInterface $paymentSessionRepository,
+        ProductRepositoryInterface $productRepository,
+        ProductCustomOptionRepositoryInterface $productCustomOptionRepository,
+        Discount $discountHelper,
+        Coupon $couponHelper,
+        RuleRepositoryInterface $ruleRepository,
+        Logger $logger
     ) {
         parent::__construct($context);
         $this->resolver = $resolver;
@@ -160,6 +200,11 @@ class Payment extends AbstractHelper
         $this->paymentSessionFactory = $paymentSessionFactory;
         $this->paymentSessionRepository = $paymentSessionRepository;
         $this->productRepository = $productRepository;
+        $this->productCustomOptionRepository = $productCustomOptionRepository;
+        $this->discountHelper = $discountHelper;
+        $this->couponHelper = $couponHelper;
+        $this->ruleRepository = $ruleRepository;
+        $this->logger = $logger;
     }
 
     /**
@@ -168,28 +213,33 @@ class Payment extends AbstractHelper
      * @param string $code
      * @return string
      */
-    public function getLocale($code)
+    public function getLocale(string $code): string
     {
         return $this->localMapping[$code] ?? '';
     }
 
     /**
-     * Create checkout session
+     * Get Billwerk customer handle from order.
      *
-     * @param Order $order
-     * @return string|mixed
-     * @throws Exception|LocalizedException|GuzzleException|NoSuchEntityException
+     * @param OrderInterface|Order $order
+     * @return false|string|null
+     * @throws NoSuchEntityException|GuzzleException
      */
-    public function createCheckoutSession($order)
+    public function getBillwerkCustomerHandle($order)
     {
         $apiKey = $this->helper->getApiKey($order->getStoreId());
         $customerId = $order->getCustomerId();
+        $customerHandle = null;
         if ($customerId) {
             try {
                 $customerSubscriber = $this->customerSubscriberRepository->get($customerId);
                 $customerHandle = $customerSubscriber->getCustomerHandle();
-            } catch (LocalizedException $e) {
-                $customerHandle = null;
+                $customer = $this->customerHelper->get($apiKey, $customerHandle);
+                if (false === $customer) {
+                    $customerHandle = null;
+                }
+            } catch (LocalizedException | GuzzleException $e) {
+                $this->_logger->info($e->getMessage());
             }
         }
         if (!$customerHandle) {
@@ -197,7 +247,44 @@ class Payment extends AbstractHelper
             $customerHandle = $this->customerHelper->search($apiKey, $customerEmail);
         }
 
-        $customer = $this->helper->getCustomerData($order);
+        return $customerHandle;
+    }
+
+    /**
+     * Prepare default options
+     *
+     * @param OrderInterface|Order $order
+     * @return array
+     * @throws NoSuchEntityException
+     */
+    private function defaultOption($order): array
+    {
+        $options = [];
+        $store = $order->getStore();
+        $localeCode = $store->getConfig('general/locale/code');
+        if (!empty($this->localMapping[$localeCode])) {
+            $options['locale'] = $this->localMapping[$localeCode];
+        }
+        $baseUrl = $this->storeManager->getStore($order->getStoreId())->getBaseUrl();
+        $options['accept_url'] = $baseUrl . 'billwerkplussubscription/standard/accept';
+        $options['cancel_url'] = $baseUrl . 'billwerkplussubscription/standard/cancel';
+        $options['recurring_optional'] = true;
+
+        return $options;
+    }
+
+    /**
+     * Create checkout session
+     *
+     * @param OrderInterface|Order $order
+     * @return string|mixed
+     * @throws Exception|LocalizedException|GuzzleException|NoSuchEntityException
+     */
+    public function createCheckoutSession($order)
+    {
+        $this->logger->addInfo(__METHOD__ . ' Creating checkout session for order id ' . $order->getId());
+        $apiKey = $this->helper->getApiKey($order->getStoreId());
+        $customerHandle = $this->getBillwerkCustomerHandle($order);
         $billingAddress = $this->helper->getOrderBillingAddress($order);
         $shippingAddress = $this->helper->getOrderShippingAddress($order);
         $paymentMethods = $this->helper->getPaymentMethods($order);
@@ -209,41 +296,25 @@ class Payment extends AbstractHelper
             'shipping_address' => $shippingAddress,
         ];
 
+        $orderLines = $this->helper->getOrderLines($order);
         if ($this->helper->getConfig('send_order_line') == '1') {
-            $orderData['order_lines'] = $this->helper->getOrderLines($order);
+            $orderData['order_lines'] = $orderLines;
         } else {
-            $orderData['order_lines'] = $this->helper->getOrderLines($order);
             $grandTotal = 0;
-            foreach ($orderData['order_lines'] as $orderLine) {
+            foreach ($orderLines as $orderLine) {
                 $grandTotal += $orderLine['amount'];
             }
             $orderData['amount'] = $this->helper->toInt($grandTotal);
         }
 
-        $settle = false;
-        $autoCaptureConfig = $this->helper->getConfig('auto_capture', $order->getStoreId());
-        $paymentMethod = $order->getPayment()->getMethodInstance()->getCode();
-        if ($autoCaptureConfig == 1) {
-            $settle = true;
-        }
-
-        $options = [];
-
-        $store = $order->getStore();
-        $localeCode = $store->getConfig('general/locale/code');
-        if (!empty($this->localMapping[$localeCode])) {
-            $options['locale'] = $this->localMapping[$localeCode];
-        }
-
-        $baseUrl = $this->storeManager->getStore($order->getStoreId())->getBaseUrl();
-        $options['accept_url'] = $baseUrl . 'billwerkplussubscription/standard/accept';
-        $options['cancel_url'] = $baseUrl . 'billwerkplussubscription/standard/cancel';
-        $options['recurring_optional'] = true;
+        $settle = $this->helper->getConfig('auto_capture', $order->getStoreId()) == 1;
+        $options = $this->defaultOption($order);
 
         $orderData['metadata'] = [
             'magento' => [
                 'module' => 'subscription',
                 'orderId' => $order->getId(),
+                'orderType' => 'Mixed',
                 'orderIncrementId' => $order->getIncrementId(),
                 'customerId' => $order->getCustomerId(),
             ]
@@ -259,6 +330,7 @@ class Payment extends AbstractHelper
                 $options
             );
         } else {
+            $customer = $this->helper->getCustomerData($order);
             $res = $this->sessionHelper->chargeCreateWithNewCustomer(
                 $apiKey,
                 $customer,
@@ -271,6 +343,7 @@ class Payment extends AbstractHelper
 
         if (is_array($res) && isset($res['id'])) {
             $paymentTransactionId = $res['id'];
+            $this->logger->addInfo(__METHOD__ . ' Created checkout session for order id ' . $order->getId());
             try {
                 /** @var SessionInterface $paymentSession */
                 $paymentSession = $this->paymentSessionFactory->create();
@@ -280,52 +353,86 @@ class Payment extends AbstractHelper
                 $paymentSession->setOrderIncrementId($order->getIncrementId());
                 $paymentSession->setCreated(date('Y-m-d H:i:s'));
                 $this->paymentSessionRepository->save($paymentSession);
-            } catch (\Magento\Framework\Exception\LocalizedException $exception) {
+            } catch (LocalizedException $exception) {
                 return $paymentTransactionId;
             }
             return $paymentTransactionId;
         } else {
-            throw new \Magento\Framework\Exception\LocalizedException(
+            $this->logger->addError(__METHOD__ . ' Unable to create checkout session for order id ' . $order->getId());
+            throw new LocalizedException(
                 __('Cannot create Billwerk+ session.')
             );
         }
     }
 
     /**
-     * Create subscription session
+     * Get addon from subscription item
      *
-     * @param Order $order
-     * @return string|mixed
-     * @throws Exception|GuzzleException|NoSuchEntityException
+     * @param OrderInterface|Order $order
+     * @param OrderItemInterface $item
+     * @param array $options
+     * @param array $addOns
+     * @return void
      */
-    public function createSubscriptionSession($order)
+    public function getAddons($order, $item, $options, &$addOns)
     {
-        $apiKey = $this->helper->getApiKey($order->getStoreId());
-        $customerId = $order->getCustomerId();
-        $customerHandle = null;
-        if ($customerId) {
-            try {
-                $customerSubscriber = $this->customerSubscriberRepository->get($customerId);
-                $customerHandle = $customerSubscriber->getCustomerHandle();
-            } catch (LocalizedException $e) {
-                $customerHandle = null;
+        foreach ($options as $index => $option) {
+            $productOption = $this->productCustomOptionRepository->get($item->getProduct()->getSku(), $index);
+            $optionValues = $productOption->getValues();
+            if (is_array($option)) {
+                foreach ($option as $value) {
+                    if (isset($optionValues[$value])) {
+                        $selectOption = $optionValues[$value];
+                        if ($selectOption->getBillwerkAddonHandle()) {
+                            $addOns[] = [
+                                'handle' => $order->getIncrementId() . '_' . $selectOption->getBillwerkAddonHandle(),
+                                'add_on' => $selectOption->getBillwerkAddonHandle(),
+                            ];
+                        }
+                    }
+                }
+            } elseif (strpos($option, ',') !== false) {
+                $optionExplode = explode(',', $option);
+                foreach ($optionExplode as $value) {
+                    if (isset($optionValues[$value])) {
+                        $selectOption = $optionValues[$value];
+                        if ($selectOption->getBillwerkAddonHandle()) {
+                            $addOns[] = [
+                                'handle' => $order->getIncrementId() . '_' . $selectOption->getBillwerkAddonHandle(),
+                                'add_on' => $selectOption->getBillwerkAddonHandle(),
+                            ];
+                        }
+                    }
+                }
+            } else {
+                if (isset($optionValues[$option])) {
+                    $selectOption = $optionValues[$option];
+                    if ($selectOption->getBillwerkAddonHandle()) {
+                        $addOns[] = [
+                            'handle' => $order->getIncrementId() . '_' . $selectOption->getBillwerkAddonHandle(),
+                            'add_on' => $selectOption->getBillwerkAddonHandle(),
+                        ];
+                    }
+                }
             }
         }
-        if (!$customerHandle) {
-            $customerEmail = $order->getCustomerEmail();
-            $customerHandle = $this->customerHelper->search($apiKey, $customerEmail);
-        }
+    }
 
-        $customer = $this->helper->getCustomerData($order);
-        $billingAddress = $this->helper->getOrderBillingAddress($order);
-        $shippingAddress = $this->helper->getOrderShippingAddress($order);
-        $paymentMethods = $this->helper->getPaymentMethods($order);
+    /**
+     * Get subscription plan and addons from order.
+     *
+     * @param OrderInterface|Order $order
+     * @return array
+     */
+    public function getSubscriptionPlanWithAddons($order): array
+    {
         $plan = null;
         $qty = 1;
         $addOns = null;
 
-        /** @var \Magento\Sales\Model\Order\Item $item */
-        foreach ($order->getAllVisibleItems() as $item) {
+        /** @var OrderItemInterface[] $orderItems */
+        $orderItems = $order->getAllVisibleItems();
+        foreach ($orderItems as $item) {
             try {
                 if (in_array($item->getProductType(), ['simple', 'virtual'])) {
                     $product = $this->productRepository->getById($item->getProductId());
@@ -368,10 +475,99 @@ class Payment extends AbstractHelper
                 continue;
             }
         }
+
+        return compact('plan', 'qty', 'addOns');
+    }
+
+    /**
+     * Get coupon code and discounts from order.
+     *
+     * @param OrderInterface|Order $order
+     * @param string $plan
+     * @param null|string $customerHandle
+     * @return array
+     */
+    public function getCouponAndDiscounts($order, $plan, $customerHandle = null): array
+    {
+        try {
+            $apiKey = $this->helper->getApiKey($order->getStoreId());
+        } catch (NoSuchEntityException $e) {
+            $apiKey = null;
+        }
+        $discountHandles = [];
+        $couponCode = $order->getCouponCode();
+        if (!empty($couponCode)) {
+            $options = ['plan' => $plan];
+            if ($customerHandle) {
+                $options['customer'] = $customerHandle;
+            }
+            try {
+                if (!$this->couponHelper->validate($apiKey, $couponCode, $options)) {
+                    $couponCode = null;
+                }
+            } catch (Throwable $exception) {
+                $couponCode = null;
+            }
+        }
+        $appliedRuleIds = $order->getAppliedRuleIds();
+        if (!empty($appliedRuleIds)) {
+            $salesRulesIds = explode(',', $appliedRuleIds);
+            if (count($salesRulesIds)) {
+                foreach ($salesRulesIds as $salesRuleId) {
+                    try {
+                        $salesRule = $this->ruleRepository->getById($salesRuleId);
+                        $salesRuleData = $salesRule->__toArray();
+                        if (array_key_exists('coupon_code', $salesRuleData)
+                            && null !== $salesRuleData['coupon_code']
+                            && $couponCode === $salesRuleData['coupon_code']
+                        ) {
+                            continue;
+                        }
+                        if (array_key_exists('billwerk_discount_handle', $salesRuleData)
+                            && empty($salesRuleData['billwerk_discount_handle'])) {
+                            continue;
+                        }
+                        $discountHandle = $salesRuleData['billwerk_discount_handle'];
+                        try {
+                            $discount = $this->discountHelper->get($apiKey, $discountHandle);
+                        } catch (Throwable $exception) {
+                            $discount = false;
+                        }
+                        if ($discount && array_key_exists('state', $discount) && $discount['state'] == 'active') {
+                            $discountHandles[] = $discountHandle;
+                        }
+                    } catch (LocalizedException $exception) {
+                        continue;
+                    }
+                }
+            }
+        }
+        return compact('couponCode', 'discountHandles');
+    }
+
+    /**
+     * Create subscription session
+     *
+     * @param OrderInterface|Order $order
+     * @return string|mixed
+     * @throws Exception|GuzzleException|NoSuchEntityException
+     */
+    public function createSubscriptionSession($order)
+    {
+        $this->logger->addInfo(__METHOD__ . ' creating subscription session for order id ' . $order->getId());
+        $apiKey = $this->helper->getApiKey($order->getStoreId());
+        $customerHandle = $this->getBillwerkCustomerHandle($order);
+        $paymentMethods = $this->helper->getPaymentMethods($order);
+        ['plan' => $plan, 'qty' => $qty, 'addOns' => $addOns] =
+            $this->getSubscriptionPlanWithAddons($order);
+        ['couponCode' => $couponCode, 'discountHandles' => $discountHandles] =
+            $this->getCouponAndDiscounts($order, $plan, $customerHandle);
+
         $metadata = [
             'magento' => [
                 'module' => 'subscription',
                 'orderId' => $order->getId(),
+                'orderType' => 'Subscription',
                 'orderIncrementId' => $order->getIncrementId(),
                 'customerId' => $order->getCustomerId(),
             ]
@@ -383,23 +579,30 @@ class Payment extends AbstractHelper
             'generate_handle' => true,
             'metadata' => $metadata
         ];
+
         if ($addOns) {
             $subscriptionData['add_ons'] = $addOns;
         }
-        $options = [];
 
-        $store = $order->getStore();
-        $localeCode = $store->getConfig('general/locale/code');
-        if (!empty($this->localMapping[$localeCode])) {
-            $options['locale'] = $this->localMapping[$localeCode];
+        if (!empty($couponCode)) {
+            $subscriptionData['coupon_codes'] = [$couponCode];
         }
 
-        $baseUrl = $this->storeManager->getStore($order->getStoreId())->getBaseUrl();
-        $options['accept_url'] = $baseUrl . 'billwerkplussubscription/standard/accept';
-        $options['cancel_url'] = $baseUrl . 'billwerkplussubscription/standard/cancel';
-        $options['recurring_optional'] = true;
+        if (!empty($discountHandles)) {
+            foreach ($discountHandles as $discountHandle) {
+                $subscriptionData['subscription_discounts'][] = [
+                    'handle' => "{$order->getIncrementId()}_$discountHandle",
+                    'discount' => $discountHandle,
+                ];
+            }
+        }
 
-        $res = false;
+        $options = $this->defaultOption($order);
+
+        if ($this->helper->getConfig('api_key_type', $order->getStoreId()) == '0') {
+            $subscriptionData['test'] = true;
+        }
+
         if ($customerHandle !== false) {
             $res = $this->sessionHelper->subscriptionCreateWithExistCustomer(
                 $apiKey,
@@ -409,6 +612,7 @@ class Payment extends AbstractHelper
                 $options
             );
         } else {
+            $customer = $this->helper->getCustomerData($order);
             $res = $this->sessionHelper->subscriptionCreateWithNewCustomer(
                 $apiKey,
                 $customer,
@@ -420,6 +624,7 @@ class Payment extends AbstractHelper
 
         if (is_array($res) && isset($res['id'])) {
             $paymentTransactionId = $res['id'];
+            $this->logger->addInfo(__METHOD__ . ' created subscription session for order id ' . $order->getId());
             try {
                 /** @var SessionInterface $paymentSession */
                 $paymentSession = $this->paymentSessionFactory->create();
@@ -429,61 +634,16 @@ class Payment extends AbstractHelper
                 $paymentSession->setOrderIncrementId($order->getIncrementId());
                 $paymentSession->setCreated(date('Y-m-d H:i:s'));
                 $this->paymentSessionRepository->save($paymentSession);
-            } catch (\Magento\Framework\Exception\LocalizedException $exception) {
+            } catch (LocalizedException $exception) {
                 return $paymentTransactionId;
             }
             return $paymentTransactionId;
         } else {
-            throw new \Magento\Framework\Exception\LocalizedException(
+            $this->logger->addError(__METHOD__ . ' Unable to create subscription session for order id '
+                . $order->getId());
+            throw new LocalizedException(
                 __('Cannot create Billwerk+ session.')
             );
-        }
-    }
-
-    private function getAddons($order, $item, $options, &$addOns)
-    {
-        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        /** @var \Magento\Catalog\Api\ProductCustomOptionRepositoryInterface $productCustomOptionRepository */
-        $productCustomOptionRepository = $objectManager->get(\Magento\Catalog\Api\ProductCustomOptionRepositoryInterface::class);
-        foreach ($options as $index => $option) {
-            $productOption = $productCustomOptionRepository->get($item->getProduct()->getSku(), $index);
-            $optionValues = $productOption->getValues();
-            if (is_array($option)) {
-                foreach ($option as $value) {
-                    if (isset($optionValues[$value])) {
-                        $selectOption = $optionValues[$value];
-                        if ($selectOption->getBillwerkAddonHandle()) {
-                            $addOns[] = [
-                                'handle' => $order->getIncrementId() . '_' . $selectOption->getBillwerkAddonHandle(),
-                                'add_on' => $selectOption->getBillwerkAddonHandle(),
-                            ];
-                        }
-                    }
-                }
-            } else if (strpos($option, ',') !== false) {
-                $optionExplode = explode(',', $option);
-                foreach ($optionExplode as $value) {
-                    if (isset($optionValues[$value])) {
-                        $selectOption = $optionValues[$value];
-                        if ($selectOption->getBillwerkAddonHandle()) {
-                            $addOns[] = [
-                                'handle' => $order->getIncrementId() . '_' . $selectOption->getBillwerkAddonHandle(),
-                                'add_on' => $selectOption->getBillwerkAddonHandle(),
-                            ];
-                        }
-                    }
-                }
-            } else {
-                if (isset($optionValues[$option])) {
-                    $selectOption = $optionValues[$option];
-                    if ($selectOption->getBillwerkAddonHandle()) {
-                        $addOns[] = [
-                            'handle' => $order->getIncrementId() . '_' . $selectOption->getBillwerkAddonHandle(),
-                            'add_on' => $selectOption->getBillwerkAddonHandle(),
-                        ];
-                    }
-                }
-            }
         }
     }
 }

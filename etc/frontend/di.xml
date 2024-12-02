@@ -7,4 +7,10 @@
 			</argument>
 		</arguments>
 	</type>
+    <type name="Magento\Framework\Pricing\Render\PriceBox">
+        <plugin name="Radarsofthouse_BillwerkPlusSubscription_Plugin_Frontend_Magento_Framework_Pricing_Render_PriceBox" type="Radarsofthouse\BillwerkPlusSubscription\Plugin\Frontend\Magento\Framework\Pricing\Render\PriceBox" sortOrder="10" disabled="false"/>
+    </type>
+    <type name="Magento\ConfigurableProduct\Block\Product\View\Type\Configurable">
+        <plugin name="Radarsofthouse_BillwerkPlusSubscription_Plugin_Frontend_Product_Json_Config" type="Radarsofthouse\BillwerkPlusSubscription\Plugin\Frontend\Magento\ConfigurableProduct\Block\Product\View\Type\Configurable" sortOrder="10" disabled="false" />
+    </type>
 </config>
