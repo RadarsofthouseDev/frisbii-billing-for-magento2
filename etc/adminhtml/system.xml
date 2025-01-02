@@ -20,12 +20,12 @@
                 </field>
                 <field id="private_key_test" type="text" sortOrder="14" showInDefault="1" showInStore="1" showInWebsite="1" translate="label">
                     <label>Private API Key For Test</label>
-                    <comment>Find your key at https://admin.billwerk.plus under "Developers" >> "API Credentials".
+                    <comment>Find your key at https://admin.billwerk.plus under "Configurations >> Integration and tools >> API credentials".
                     </comment>
                 </field>
                 <field id="private_key" type="text" sortOrder="15" showInDefault="1" showInStore="1" showInWebsite="1" translate="label">
                     <label>Private API Key For Live</label>
-                    <comment>Find your key at https://admin.billwerk.plus under "Developers" >> "API Credentials".
+                    <comment>Find your key at https://admin.billwerk.plus under "Configurations >> Integration and tools >> API credentials".
                     </comment>
                 </field>
                 <field id="api_key_type" type="select" sortOrder="16" showInDefault="1" showInStore="1" showInWebsite="1" translate="label">

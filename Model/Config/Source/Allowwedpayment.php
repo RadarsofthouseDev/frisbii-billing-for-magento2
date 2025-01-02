@@ -1,8 +1,10 @@
 <?php
+
 /**
  * Copyright © radarsofthouse.dk All rights reserved.
  * See COPYING.txt for license details.
  */
+
 declare(strict_types=1);
 
 namespace Radarsofthouse\BillwerkPlusSubscription\Model\Config\Source;
@@ -33,9 +35,7 @@ class Allowwedpayment implements \Magento\Framework\Option\ArrayInterface
             ['value' => 'china_union_pay', 'label' => __('China Union Pay')],
             ['value' => 'ffk', 'label' => __('Forbrugsforeningen')],
             ['value' => 'applepay', 'label' => __('Apple Pay')],
-            ['value' => 'bank_transfer', 'label' => __('Bank Transfer')],
             ['value' => 'cash', 'label' => __('Cash')],
-            ['value' => 'other', 'label' => __('Other')],
         ];
     }
 }

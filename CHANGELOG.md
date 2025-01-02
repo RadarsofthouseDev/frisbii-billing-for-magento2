@@ -1,4 +1,8 @@
 # Changelog
+## Version 1.0.12 on 2 January 2025
+- Removed unsupported payment methods.
+- Updated the descriptions of two fields.
+
 ## Version 1.0.11 on 2 December 2024
 - Supported Billwerk+ Discount: Implemented new options, "Billwerk+ Coupon Code" and "Billwerk+ Discount Handle" in the Magento cart price rule settings.
 - Displayed the subscription frequency next to the product price of subscription products.
