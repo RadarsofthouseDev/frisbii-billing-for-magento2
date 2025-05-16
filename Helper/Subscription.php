@@ -295,4 +295,29 @@ class Subscription extends AbstractHelper
             return false;
         }
     }
+
+    /**
+     * Get subscription add on
+     *
+     * @param string $apiKey
+     * @param string $handle
+     * @param string $addonHandle
+     * @return bool|array
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public function getAddon($apiKey, $handle, $addonHandle)
+    {
+        $log = ['param' => ['handle' => $handle, 'addon_handle' => $addonHandle]];
+        $response = $this->client->get($apiKey, self::ENDPOINT . "/$handle/add_on/$addonHandle");
+        if ($this->client->success()) {
+            $log['response'] = $response;
+            $this->logger->addInfo(__METHOD__, $log, true);
+            return $response;
+        } else {
+            $log['http_errors'] = $this->client->getHttpError();
+            $log['response_errors'] = $this->client->getErrors();
+            $this->logger->addError(__METHOD__, $log, true);
+            return false;
+        }
+    }
 }

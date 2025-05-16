@@ -23,7 +23,16 @@ if (empty($subscriptions)): ?>
             </tr>
             </thead>
             <tbody>
-            <?php foreach ($subscriptions as $subscription): ?>
+            <?php foreach ($subscriptions as $subscription):
+                $addons = $block->getSubscriptionAddOns($subscription);
+                $totalAddonsAmount = $block->getTotalAddonsAmount($addons);
+                $planAmount = $block->getPlanPrice($subscription['plan']);
+                $subscriptionAmount = $planAmount['price'] + $totalAddonsAmount['amount'];
+                if($subscriptionAmount > 0){
+                    $subscriptionAmount = "$subscriptionAmount ". ($planAmount['currency'] ?? $totalAddonsAmount['currency']);
+                }
+                $addonsName = $block->getAddonsName($addons);
+                ?>
                 <tr class="<?php echo $subscription['handle']; ?>">
                     <td data-th="<?php echo __("Subscription ID")?>" class="col subscription-id">
                         <a href="<?php echo $block->getUrl('billwerkplussubscription/customer/subscriptionview',
@@ -33,13 +42,18 @@ if (empty($subscriptions)): ?>
                     </td>
                     <td data-th="<?php echo __("Name"); ?>" class="col status">
                         <div class="subscription-status">
-                            <?php echo $block->getPlanName($subscription['plan']); ?>
+                            <?php echo $block->getPlanName($subscription['plan']) . $addonsName; ?>
                         </div>
                     </td>
                     <td data-th="<?php echo __("Status"); ?>" class="col status">
                         <div class="subscription-status">
                             <?php echo __($subscription['is_cancelled'] ?
                                 'Cancel' : ucfirst(str_replace('_', ' ',$subscription['state']))); ?>
+                            <?php if($subscription['in_trial']): ?>
+                                <span class="billwerkplus-subscription-trial">
+                                / <?php echo __('Trial period'); ?>
+                            </span>
+                            <?php endif; ?>
                         </div>
                     </td>
                     <td data-th="<?php echo __("Next Payment"); ?>" class="col next-payment">
@@ -49,7 +63,7 @@ if (empty($subscriptions)): ?>
                     </td>
                     <td data-th="<?php echo __("Amount"); ?>" class="col amount">
                         <div class="subscription-amount">
-                            <?php echo $block->getPlanPrice($subscription['plan']); ?>
+                            <?php echo $subscriptionAmount; ?>
                         </div>
                     </td>
                     <td data-th="Actions" class="col">

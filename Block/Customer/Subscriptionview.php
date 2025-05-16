@@ -221,4 +221,50 @@ class Subscriptionview extends Template
     {
         return $this->helper->getConfig('enable_self_cancel');
     }
+
+    /**
+     *  Get subscription addons.
+     * @param $subscription
+     * @return array
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    public function getSubscriptionAddOns($subscription)
+    {
+        $addons = [];
+        if (array_key_exists('subscription_add_ons', $subscription)) {
+            $apiKey = $this->helper->getApiKey();
+            foreach ($subscription['subscription_add_ons'] as $addonHandle) {
+
+                try {
+                    $addon =  $this->subscriptionHelper->getAddon($apiKey, $subscription['handle'], $addonHandle);
+                    if ($addon) {
+                        $addons[] = $addon;
+                    }
+                } catch (\GuzzleHttp\Exception\GuzzleException $e) {
+                    $this->_logger->error($e->getMessage());
+                }
+            }
+        }
+        return $addons;
+    }
+
+    /**
+     * Get subscription addons name.
+     *
+     * @param $addOns
+     * @return string
+     */
+    public function getAddonsName($addOns)
+    {
+        if (!is_array($addOns) || empty($addOns)) {
+            return '';
+        }
+        $names = [];
+        foreach ($addOns as $addOn) {
+            if(array_key_exists('add_on', $addOn) && array_key_exists('name', $addOn['add_on'])) {
+                $names[] = $addOn['add_on']['name'];
+            }
+        }
+        return !empty($names) ? ' + ' . implode(',', $names) : '';
+    }
 }

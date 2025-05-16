@@ -121,6 +121,59 @@ class Subscriptions extends \Magento\Framework\View\Element\Template
     }
 
     /**
+     *  Get subscription addons.
+     * @param $subscription
+     * @return array
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    public function getSubscriptionAddOns($subscription)
+    {
+        $addons = [];
+        if (array_key_exists('subscription_add_ons', $subscription)) {
+            $apiKey = $this->helper->getApiKey();
+            foreach ($subscription['subscription_add_ons'] as $addonHandle) {
+
+                try {
+                    $addon =  $this->subscriptionHelper->getAddon($apiKey, $subscription['handle'], $addonHandle);
+                    if ($addon) {
+                        $addons[] = $addon;
+                    }
+                } catch (\GuzzleHttp\Exception\GuzzleException $e) {
+                    $this->_logger->error($e->getMessage());
+                }
+            }
+        }
+        return $addons;
+    }
+
+    public function getTotalAddonsAmount($addOns)
+    {
+        if (!is_array($addOns) || empty($addOns)) {
+            return ['amount' => 0, 'currency' => null];
+        }
+        $totalPrice = 0;
+        $currency = null;
+        foreach ($addOns as $addOn) {
+            if (array_key_exists('currency', $addOn)) {
+                $currency = $addOn['currency'];
+            }elseif(array_key_exists('add_on', $addOn) && array_key_exists('currency', $addOn['add_on'])) {
+                $currency = $addOn['add_on']['currency'];
+            }
+            if (array_key_exists('quantity', $addOn) && array_key_exists('amount', $addOn)) {
+                $totalPrice += ($addOn['quantity'] * $addOn['amount'])/100;
+            }elseif (array_key_exists('amount', $addOn)) {
+                $totalPrice += $addOn['amount'] / 100;
+            }else{
+                $totalPrice += $addOn['add_on']['amount'] / 100;
+            }
+        }
+        return [
+            'amount' => $totalPrice,
+            'currency' => $currency
+        ];
+    }
+
+    /**
      * Convert date format.
      *
      * @param string $date
@@ -145,14 +198,15 @@ class Subscriptions extends \Magento\Framework\View\Element\Template
     public function getPlanPrice($handle)
     {
         if (array_key_exists($handle, $this->plans) && array_key_exists('price', $this->plans[$handle])) {
-            return $this->plans[$handle]['price'];
+            return $this->plans[$handle];
         }
         $apiKey = $this->helper->getApiKey();
         $plan = $this->planHelper->get($apiKey, $handle);
         if ($plan) {
-            $this->plans[$handle]['price'] = ($plan['amount'] / 100) .' '. $plan['currency'];
+            $this->plans[$handle]['price'] = ($plan['amount'] / 100);
             $this->plans[$handle]['name'] = $plan['name'];
-            return $this->plans[$handle]['price'];
+            $this->plans[$handle]['currency'] = $plan['currency'] ?? null;
+            return $this->plans[$handle];
         }
     }
 
@@ -170,9 +224,30 @@ class Subscriptions extends \Magento\Framework\View\Element\Template
         $apiKey = $this->helper->getApiKey();
         $plan = $this->planHelper->get($apiKey, $handle);
         if ($plan) {
-            $this->plans[$handle]['price'] = ($plan['amount'] / 100) .' '. $plan['currency'];
+            $this->plans[$handle]['price'] = ($plan['amount'] / 100);
             $this->plans[$handle]['name'] = $plan['name'];
+            $this->plans[$handle]['currency'] = $plan['currency']  ?? null;
             return $this->plans[$handle]['name'];
         }
+    }
+
+    /**
+     * Get subscription addons name.
+     *
+     * @param $addOns
+     * @return string
+     */
+    public function getAddonsName($addOns)
+    {
+        if (!is_array($addOns) || empty($addOns)) {
+            return '';
+        }
+        $names = [];
+        foreach ($addOns as $addOn) {
+            if(array_key_exists('add_on', $addOn) && array_key_exists('name', $addOn['add_on'])) {
+                $names[] = $addOn['add_on']['name'];
+            }
+        }
+        return !empty($names) ? ' + ' . implode(',', $names) : '';
     }
 }

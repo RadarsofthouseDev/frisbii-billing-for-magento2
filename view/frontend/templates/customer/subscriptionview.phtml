@@ -6,7 +6,8 @@ if ($subscription['payment_method_added']) {
         $paymentMethods[$activePaymentMethodId] = $block->getPaymentMethod($activePaymentMethodId);
     }
 }
-//dump($subscription);
+$addons = $block->getSubscriptionAddOns($subscription);
+$addonsName = $block->getAddonsName($addons);
 ?>
 
 <div class="table-wrapper billwerkplus-subscription-details">
@@ -15,20 +16,42 @@ if ($subscription['payment_method_added']) {
         <tr>
             <td><?php echo __("Status"); ?></td>
             <td><?php echo __($subscription['is_cancelled'] ?
-                    'Cancel' : ucfirst(str_replace('_', ' ',$subscription['state']))); ?></td>
+                    'Cancel' : ucfirst(str_replace('_', ' ',$subscription['state']))); ?>
+                <?php if($subscription['in_trial']): ?>
+                    <span class="billwerkplus-subscription-trial">
+                        / <?php echo __('Trial period'); ?>
+                    </span>
+                <?php endif; ?>
+            </td>
         </tr>
         <tr>
             <td><?php echo __("Plan"); ?></td>
-            <td><?php echo $block->getPlanName($subscription['plan']); ?></td>
+            <td><?php echo $block->getPlanName($subscription['plan']) . $addonsName; ?></td>
         </tr>
+        <?php if ($subscription['in_trial']): ?>
+            <?php if (array_key_exists('trial_start', $subscription)): ?>
+                <tr>
+                    <td><?php echo __("Trial period start date"); ?></td>
+                    <td><?php echo $block->dateFormat($subscription['trial_start']); ?></td>
+                </tr>
+            <?php endif; ?>
+            <?php if (array_key_exists('trial_end', $subscription)): ?>
+                <tr>
+                    <td><?php echo __("Trial period end date"); ?></td>
+                    <td><?php echo $block->dateFormat($subscription['trial_end']); ?></td>
+                </tr>
+            <?php endif; ?>
+        <?php endif; ?>
         <tr>
             <td><?php echo __("Start Payment date"); ?></td>
             <td><?php echo $block->dateFormat($subscription['first_period_start']); ?></td>
         </tr>
+        <?php if(array_key_exists('current_period_start', $subscription)): ?>
         <tr>
             <td><?php echo __("Last Payment date"); ?></td>
             <td><?php echo $block->dateFormat($subscription['current_period_start']); ?></td>
         </tr>
+        <?php endif; ?>
         <?php if(!$subscription['is_cancelled']): ?>
         <tr>
             <td><?php echo __("Next Payment date"); ?></td>
@@ -58,7 +81,7 @@ if ($subscription['payment_method_added']) {
             <td><?php echo __("Action"); ?></td>
             <td>
                 <?php if($subscription['state'] == 'active'
-                    && !$subscription['is_cancelled'] && $block->enablePause()): ?>
+                    && !$subscription['is_cancelled'] && !$subscription['in_trial'] && $block->enablePause()): ?>
                 <form action="<?php echo $block->getUrl('billwerkplussubscription/subscription/action') ?>"
                       method="post" style="display: inline-block;">
                     <input type="hidden" name="form_key"  value="<?php echo $block->getFormKey();?>">

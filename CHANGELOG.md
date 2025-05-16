@@ -1,4 +1,7 @@
 # Changelog
+## Version 1.0.13 on 16 May 2025
+- Fixed the error when displaying subscriptions with a trial period
+
 ## Version 1.0.12 on 2 January 2025
 - Removed unsupported payment methods.
 - Updated the descriptions of two fields.
