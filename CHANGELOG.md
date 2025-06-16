@@ -1,4 +1,11 @@
 # Changelog
+## Version 1.0.16 on xxx June 2025
+- Rebranded Billwerk+ Optimize to Frisbii Billing
+
+## Version 1.0.15 on 16 June 2025
+- Fixed an error related to the applyRules() method on Magento 2.4.7 and later.
+- Checked compatible with Magento 2.4.8
+
 ## Version 1.0.13 on 16 May 2025
 - Fixed the error when displaying subscriptions with a trial period
 

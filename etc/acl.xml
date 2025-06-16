@@ -6,7 +6,7 @@
                 <resource id="Magento_Backend::stores">
                     <resource id="Magento_Backend::stores_settings">
                         <resource id="Magento_Config::config">
-                            <resource id="Radarsofthouse_BillwerkPlusSubscription::config_billwerkplus_subscription" title="Billwerk+ subscriptions config"/>
+                            <resource id="Radarsofthouse_BillwerkPlusSubscription::config_billwerkplus_subscription" title="Frisbii subscriptions config"/>
                         </resource>
                     </resource>
                 </resource>

@@ -360,7 +360,7 @@ class Payment extends AbstractHelper
         } else {
             $this->logger->addError(__METHOD__ . ' Unable to create checkout session for order id ' . $order->getId());
             throw new LocalizedException(
-                __('Cannot create Billwerk+ session.')
+                __('Cannot create Frisbii session.')
             );
         }
     }
@@ -517,14 +517,17 @@ class Payment extends AbstractHelper
                     try {
                         $salesRule = $this->ruleRepository->getById($salesRuleId);
                         $salesRuleData = $salesRule->__toArray();
-                        if (array_key_exists('coupon_code', $salesRuleData)
+                        if (
+                            array_key_exists('coupon_code', $salesRuleData)
                             && null !== $salesRuleData['coupon_code']
                             && $couponCode === $salesRuleData['coupon_code']
                         ) {
                             continue;
                         }
-                        if (array_key_exists('billwerk_discount_handle', $salesRuleData)
-                            && empty($salesRuleData['billwerk_discount_handle'])) {
+                        if (
+                            array_key_exists('billwerk_discount_handle', $salesRuleData)
+                            && empty($salesRuleData['billwerk_discount_handle'])
+                        ) {
                             continue;
                         }
                         $discountHandle = $salesRuleData['billwerk_discount_handle'];
@@ -642,7 +645,7 @@ class Payment extends AbstractHelper
             $this->logger->addError(__METHOD__ . ' Unable to create subscription session for order id '
                 . $order->getId());
             throw new LocalizedException(
-                __('Cannot create Billwerk+ session.')
+                __('Cannot create Frisbii session.')
             );
         }
     }

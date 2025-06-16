@@ -18,8 +18,7 @@ class Addon extends AbstractModifier
 
     public function __construct(
         \Radarsofthouse\BillwerkPlusSubscription\Model\Config\Source\Addon $addon
-    )
-    {
+    ) {
         $this->addon = $addon;
     }
 
@@ -57,10 +56,8 @@ class Addon extends AbstractModifier
         $optionContainerName       = CustomOptions::CONTAINER_OPTION;
 
         // Add fields to the values
-        $this->meta[$groupCustomOptionsName]['children']['options']['children']['record']['children']
-        [$optionContainerName]['children']['values']['children']['record']['children'] = array_replace_recursive(
-            $this->meta[$groupCustomOptionsName]['children']['options']['children']['record']['children']
-            [$optionContainerName]['children']['values']['children']['record']['children'],
+        $this->meta[$groupCustomOptionsName]['children']['options']['children']['record']['children'][$optionContainerName]['children']['values']['children']['record']['children'] = array_replace_recursive(
+            $this->meta[$groupCustomOptionsName]['children']['options']['children']['record']['children'][$optionContainerName]['children']['values']['children']['record']['children'],
             $this->getAddonFieldsConfig()
         );
     }
@@ -88,7 +85,7 @@ class Addon extends AbstractModifier
             'arguments' => [
                 'data' => [
                     'config' => [
-                        'label' => __('Billwerk+ Addon'),
+                        'label' => __('Frisbii Addon'),
                         'componentType' => Field::NAME,
                         'formElement' => Select::NAME,
                         'dataScope' => 'billwerk_addon_handle',
@@ -99,6 +96,5 @@ class Addon extends AbstractModifier
                 ],
             ],
         ];
-
     }
 }

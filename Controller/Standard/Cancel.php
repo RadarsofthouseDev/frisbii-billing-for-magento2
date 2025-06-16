@@ -1,8 +1,10 @@
 <?php
+
 /**
  * Copyright © radarsofthouse.dk All rights reserved.
  * See COPYING.txt for license details.
  */
+
 declare(strict_types=1);
 
 namespace Radarsofthouse\BillwerkPlusSubscription\Controller\Standard;
@@ -171,7 +173,7 @@ class Cancel extends Action
             // don't allow the cancellation if already have transactions (payment is paid)
             if (count($transactions->getItems()) == 0) {
                 $order->cancel();
-                $order->addStatusHistoryComment('Billwerk+ : order have been cancelled by payment page');
+                $order->addStatusHistoryComment('Frisbii : order have been cancelled by payment page');
                 $order->save();
                 $this->logger->addDebug('Cancelled order : ' . $orderId);
                 $apiKey = $this->helper->getApiKey($order->getStoreId());

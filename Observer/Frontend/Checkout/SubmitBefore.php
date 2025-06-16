@@ -1,8 +1,10 @@
 <?php
+
 /**
  * Copyright © BillwerkPlusSubscription All rights reserved.
  * See COPYING.txt for license details.
  */
+
 declare(strict_types=1);
 
 namespace Radarsofthouse\BillwerkPlusSubscription\Observer\Frontend\Checkout;
@@ -124,7 +126,7 @@ class SubmitBefore implements \Magento\Framework\Event\ObserverInterface
         $order = $observer->getOrder();
         $storeId = $order->getStoreId();
 
-        // If Payment method are not Billwerk+
+        // If Payment method are not Frisbii
         if ($quote->isMultipleShippingAddresses() || !$quote->getPayment() || !$this->helper->isOurPaymentMethod($quote->getPayment()->getMethod())) {
             return;
         }
@@ -216,7 +218,8 @@ class SubmitBefore implements \Magento\Framework\Event\ObserverInterface
         $customer->setStoreId($storeId);
         $customer->setCreatedIn($storeName);
         $customer->setEmail($quote->getCustomerEmail());
-        if ($quote->getCustomerFirstname() !== null && $quote->getCustomerLastname() !== null
+        if (
+            $quote->getCustomerFirstname() !== null && $quote->getCustomerLastname() !== null
         ) {
             $customer->setFirstname((string)$quote->getCustomerFirstname());
             $customer->setLastname((string)$quote->getCustomerLastname());
@@ -240,7 +243,7 @@ class SubmitBefore implements \Magento\Framework\Event\ObserverInterface
         if ($savedCustomer) {
             try {
                 $this->sendCustomEmail($savedCustomer);
-            }catch (LocalizedException $e) {
+            } catch (LocalizedException $e) {
                 $this->logger->addInfo(__METHOD__);
                 $this->logger->addInfo("Can't send email to " . $savedCustomer->getEmail() . " with Customer Id: " . $savedCustomer->getId());
             }

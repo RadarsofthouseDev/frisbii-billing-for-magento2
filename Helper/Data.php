@@ -38,7 +38,7 @@ class Data extends AbstractHelper
         'billwerkplus_subscription',
     ];
 
-    public const TERMS_AND_CONDITIONS_NAME = 'billwerk_plus_optimize_terms_and_conditions';
+    public const TERMS_AND_CONDITIONS_NAME = 'frisbii_billing_terms_and_conditions';
 
     /**
      * @var StoreManagerInterface
@@ -486,7 +486,7 @@ class Data extends AbstractHelper
 
                 $order->setState($orderStatusAfterPayment, true);
                 $order->setStatus($orderStatusAfterPayment);
-                $order->addStatusToHistory($order->getStatus(), 'Billwerk+ : The authorized amount is ' . $totalDue);
+                $order->addStatusToHistory($order->getStatus(), 'Frisbii : The authorized amount is ' . $totalDue);
                 $order->save();
             }
 
@@ -559,7 +559,7 @@ class Data extends AbstractHelper
             $payment->setParentTransactionId($authorizationTxnId);
 
             $formatedPrice = $order->getBaseCurrency()->formatTxt($transactionData['amount']);
-            $message = __('Billwerk+ : Captured amount of %1 by the webhook.', $formatedPrice);
+            $message = __('Frisbii : Captured amount of %1 by the webhook.', $formatedPrice);
 
             $transaction = $this->transactionBuilder->setPayment($payment)
                 ->setOrder($order)
@@ -640,7 +640,7 @@ class Data extends AbstractHelper
             $payment->setAdditionalInformation([Transaction::RAW_DETAILS => $paymentData]);
 
             $formatedPrice = $order->getBaseCurrency()->formatTxt($transactionData['amount']);
-            $message = __('Billwerk+ : Refunded amount of %1 by the webhook.', $formatedPrice);
+            $message = __('Frisbii : Refunded amount of %1 by the webhook.', $formatedPrice);
 
             $transaction = $this->transactionBuilder
                 ->setPayment($payment)
@@ -662,7 +662,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Check is billwerk+ payment method
+     * Check is Frisbii payment method
      *
      * @param string $method
      * @return bool
@@ -691,7 +691,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Set billwerk+ payment state to radarsofthouse_reepay_status
+     * Set Frisbii payment state to radarsofthouse_reepay_status
      *
      * @param \Magento\Sales\Model\Order\Payment $payment
      * @param string $state
@@ -748,7 +748,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Return true if the product is Billwerk+ subscription product
+     * Return true if the product is Frisbii subscription product
      *
      * @param Product $product
      * @return bool
@@ -759,7 +759,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Return true if the product is Billwerk+ subscription product by ID
+     * Return true if the product is Frisbii subscription product by ID
      * @param $productId
      * @return bool
      */

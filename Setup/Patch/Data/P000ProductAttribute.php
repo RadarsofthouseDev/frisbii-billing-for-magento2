@@ -1,8 +1,10 @@
 <?php
+
 /**
  * Copyright © radarsofthouse.dk All rights reserved.
  * See COPYING.txt for license details.
  */
+
 declare(strict_types=1);
 
 namespace Radarsofthouse\BillwerkPlusSubscription\Setup\Patch\Data;
@@ -48,36 +50,36 @@ class P000ProductAttribute implements DataPatchInterface, PatchRevertableInterfa
         $this->moduleDataSetup->getConnection()->startSetup();
         /** @var EavSetup $eavSetup */
         $eavSetup = $this->eavSetupFactory->create(['setup' => $this->moduleDataSetup]);
-//        $eavSetup->addAttribute(
-//            \Magento\Catalog\Model\Product::ENTITY,
-//            'billwerk_sub_plan',
-//            [
-//                'type' => 'int',
-//                'label' => 'Subscription Plan',
-//                'input' => 'select',
-//                'source' => '',
-//                'frontend' => '',
-//                'required' => false,
-//                'backend' => '',
-//                'sort_order' => '30',
-//                'global' => ScopedAttributeInterface::SCOPE_STORE,
-//                'default' => null,
-//                'visible' => true,
-//                'user_defined' => true,
-//                'searchable' => false,
-//                'filterable' => false,
-//                'comparable' => false,
-//                'visible_on_front' => true,
-//                'unique' => false,
-//                'apply_to' => 'simple,virtual',
-//                'group' => 'General',
-//                'used_in_product_listing' => false,
-//                'is_used_in_grid' => true,
-//                'is_visible_in_grid' => false,
-//                'is_filterable_in_grid' => false,
-//                'option' => array('values' => array(""))
-//            ]
-//        );
+        //        $eavSetup->addAttribute(
+        //            \Magento\Catalog\Model\Product::ENTITY,
+        //            'billwerk_sub_plan',
+        //            [
+        //                'type' => 'int',
+        //                'label' => 'Subscription Plan',
+        //                'input' => 'select',
+        //                'source' => '',
+        //                'frontend' => '',
+        //                'required' => false,
+        //                'backend' => '',
+        //                'sort_order' => '30',
+        //                'global' => ScopedAttributeInterface::SCOPE_STORE,
+        //                'default' => null,
+        //                'visible' => true,
+        //                'user_defined' => true,
+        //                'searchable' => false,
+        //                'filterable' => false,
+        //                'comparable' => false,
+        //                'visible_on_front' => true,
+        //                'unique' => false,
+        //                'apply_to' => 'simple,virtual',
+        //                'group' => 'General',
+        //                'used_in_product_listing' => false,
+        //                'is_used_in_grid' => true,
+        //                'is_visible_in_grid' => false,
+        //                'is_filterable_in_grid' => false,
+        //                'option' => array('values' => array(""))
+        //            ]
+        //        );
         /*if ($eavSetup->getAttributeId(\Magento\Catalog\Model\Product::ENTITY, 'billwerk_sub_plan')) {
             $eavSetup->removeAttribute(\Magento\Catalog\Model\Product::ENTITY, 'billwerk_sub_plan');
         }*/
@@ -93,7 +95,7 @@ class P000ProductAttribute implements DataPatchInterface, PatchRevertableInterfa
                     'source' => \Radarsofthouse\BillwerkPlusSubscription\Model\Config\Source\SubscriptionPlan::class,
                     'sort_order' => 30,
                     'global' => ScopedAttributeInterface::SCOPE_STORE,
-                    'group' => 'Subscriptions by Billwerk+',
+                    'group' => 'Subscriptions by Frisbii',
                     'is_used_in_grid' => true,
                     'is_visible_in_grid' => true,
                     'is_filterable_in_grid' => true,
@@ -113,7 +115,7 @@ class P000ProductAttribute implements DataPatchInterface, PatchRevertableInterfa
                     'source' => \Radarsofthouse\BillwerkPlusSubscription\Model\Config\Source\SubscriptionPlan::class,
                     'sort_order' => 30,
                     'global' => ScopedAttributeInterface::SCOPE_STORE,
-                    'group' => 'Subscriptions by Billwerk+',
+                    'group' => 'Subscriptions by Frisbii',
                     'is_used_in_grid' => true,
                     'is_visible_in_grid' => true,
                     'is_filterable_in_grid' => true,
@@ -136,7 +138,7 @@ class P000ProductAttribute implements DataPatchInterface, PatchRevertableInterfa
                     'sort_order' => 29,
                     'global' => ScopedAttributeInterface::SCOPE_STORE,
                     'default' => 1,
-                    'group' => 'Subscriptions by Billwerk+',
+                    'group' => 'Subscriptions by Frisbii',
                     'is_used_in_grid' => true,
                     'is_visible_in_grid' => true,
                     'is_filterable_in_grid' => true,
@@ -157,7 +159,7 @@ class P000ProductAttribute implements DataPatchInterface, PatchRevertableInterfa
                     'sort_order' => 29,
                     'global' => ScopedAttributeInterface::SCOPE_STORE,
                     'default' => 1,
-                    'group' => 'Subscriptions by Billwerk+',
+                    'group' => 'Subscriptions by Frisbii',
                     'is_used_in_grid' => true,
                     'is_visible_in_grid' => true,
                     'is_filterable_in_grid' => true,
@@ -199,8 +201,6 @@ class P000ProductAttribute implements DataPatchInterface, PatchRevertableInterfa
      */
     public static function getDependencies()
     {
-        return [
-
-        ];
+        return [];
     }
 }

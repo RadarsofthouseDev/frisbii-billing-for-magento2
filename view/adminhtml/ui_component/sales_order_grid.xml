@@ -6,7 +6,7 @@
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
-                    <item name="label" xsi:type="string" translate="true">Billwerk+ Order Type</item>
+                    <item name="label" xsi:type="string" translate="true">Frisbii Order Type</item>
                 </item>
             </argument>
         </column>
@@ -15,7 +15,7 @@
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
                     <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
-                    <item name="label" xsi:type="string" translate="true">Billwerk+ Subscription Handle</item>
+                    <item name="label" xsi:type="string" translate="true">Frisbii Subscription Handle</item>
                 </item>
             </argument>
         </actionsColumn>

@@ -3,7 +3,7 @@
     <system>
         <section id="payment" sortOrder="1000" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
             <group id="billwerkplus_subscription" sortOrder="89" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-                <label>Billwerk+ Optimize</label>
+                <label>Frisbii Billing</label>
                 <field id="version"  type="label" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1" translate="label">
                     <label>Module Version</label>
                     <frontend_model>Radarsofthouse\BillwerkPlusSubscription\Block\Adminhtml\System\Config\Form\Field\Version</frontend_model>
@@ -20,12 +20,12 @@
                 </field>
                 <field id="private_key_test" type="text" sortOrder="14" showInDefault="1" showInStore="1" showInWebsite="1" translate="label">
                     <label>Private API Key For Test</label>
-                    <comment>Find your key at https://admin.billwerk.plus under "Configurations >> Integration and tools >> API credentials".
+                    <comment>Find your key at https://app.frisbii.com under "Configurations >> Integration and tools >> API credentials".
                     </comment>
                 </field>
                 <field id="private_key" type="text" sortOrder="15" showInDefault="1" showInStore="1" showInWebsite="1" translate="label">
                     <label>Private API Key For Live</label>
-                    <comment>Find your key at https://admin.billwerk.plus under "Configurations >> Integration and tools >> API credentials".
+                    <comment>Find your key at https://app.frisbii.com under "Configurations >> Integration and tools >> API credentials".
                     </comment>
                 </field>
                 <field id="api_key_type" type="select" sortOrder="16" showInDefault="1" showInStore="1" showInWebsite="1" translate="label">
@@ -35,7 +35,7 @@
                 </field>
                 <field id="webhook" type="button" sortOrder="17" showInDefault="1" showInWebsite="1" showInStore="0" translate="label comment">
                     <frontend_model>Radarsofthouse\BillwerkPlusSubscription\Block\Adminhtml\System\Config\Webhook</frontend_model>
-                    <label>Update webhook URL in Billwerk+</label>
+                    <label>Update webhook URL in Frisbii</label>
                     <comment>Note: Save config before updating the webhook URL.</comment>
                 </field>
                 <field id="allowspecific" type="allowspecific" sortOrder="18" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
@@ -78,12 +78,12 @@
                 <field id="auto_capture" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="101" translate="label" type="select">
                     <label>Auto Capture</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment>Automatic capture the payment after the user has paid. Payment status in Billwerk+ will
-                        be “Settled”. If set to 'No' the payment status in Billwerk+ will be “Authorized” after the user has paid.</comment>
+                    <comment>Automatic capture the payment after the user has paid. Payment status in Frisbii will
+                        be “Settled”. If set to 'No' the payment status in Frisbii will be “Authorized” after the user has paid.</comment>
                 </field>
                 <field id="auto_create_invoice" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="102" translate="label" type="select">
                     <label>Invoice when Fully Settled</label>
-                    <comment>Create invoice in Magento when full amount is settled in Billwerk+</comment>
+                    <comment>Create invoice in Magento when full amount is settled in Frisbii</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="auto_capture">0</field>

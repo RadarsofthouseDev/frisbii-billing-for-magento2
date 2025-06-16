@@ -1,45 +1,46 @@
 <?php
+
 /**
  * @var $block \Radarsofthouse\BillwerkPlusSubscription\Block\Adminhtml\Order\View
  */
 if ($block->isShow()):
-    $adminBillPlusLink = "https://admin.billwerk.plus/#/rp/";
-    $customerLink = $adminBillPlusLink."customers/customers/customer/".$block->getCustomerHandle();
-    $subscriptionLink = $adminBillPlusLink."subscriptions/subscription/".$block->getSubscriptionHandle();
-    ?>
-<section class="admin__page-section-item order-subscription-information">
-    <div class="admin__page-section-title">
-        <span class="title">Billwerk+ Information</span>
-    </div>
-    <div class="admin__page-section-content">
-        <div class="admin__page-section-item order-payment-method">
-            <div class="admin__page-section-item-title">
-                <span class="title">Customer Information</span>
-            </div>
-            <div class="admin__page-section-item-content">
-                <strong>Handle</strong>
-                <a href="<?=$customerLink?>" target="_blank">
-                    <?= $block->getCustomerHandle() ?>
-                </a>
-            </div>
+    $adminBillPlusLink = "https://app.frisbii.com/#/rp/";
+    $customerLink = $adminBillPlusLink . "customers/customers/customer/" . $block->getCustomerHandle();
+    $subscriptionLink = $adminBillPlusLink . "subscriptions/subscription/" . $block->getSubscriptionHandle();
+?>
+    <section class="admin__page-section-item order-subscription-information">
+        <div class="admin__page-section-title">
+            <span class="title">Frisbii Information</span>
         </div>
+        <div class="admin__page-section-content">
+            <div class="admin__page-section-item order-payment-method">
+                <div class="admin__page-section-item-title">
+                    <span class="title">Customer Information</span>
+                </div>
+                <div class="admin__page-section-item-content">
+                    <strong>Handle</strong>
+                    <a href="<?= $customerLink ?>" target="_blank">
+                        <?= $block->getCustomerHandle() ?>
+                    </a>
+                </div>
+            </div>
 
-        <div class="admin__page-section-item order-shipping-method">
-            <div class="admin__page-section-item-title">
-                <span class="title">Subscription Information</span>
-            </div>
-            <div class="admin__page-section-item-content">
-                <strong>Handle</strong>
-                <a href="<?=$subscriptionLink?>" target="_blank">
-                    <?= $block->getSubscriptionHandle(); ?>
-                </a>
-            </div>
-            <div class="admin__page-section-item-content">
-                <strong>Plan</strong>
-                <span class="price"><?= $block->getPlanHandle(); ?></span>
+            <div class="admin__page-section-item order-shipping-method">
+                <div class="admin__page-section-item-title">
+                    <span class="title">Subscription Information</span>
+                </div>
+                <div class="admin__page-section-item-content">
+                    <strong>Handle</strong>
+                    <a href="<?= $subscriptionLink ?>" target="_blank">
+                        <?= $block->getSubscriptionHandle(); ?>
+                    </a>
+                </div>
+                <div class="admin__page-section-item-content">
+                    <strong>Plan</strong>
+                    <span class="price"><?= $block->getPlanHandle(); ?></span>
+                </div>
             </div>
         </div>
-    </div>
-</section>
-<br>
+    </section>
+    <br>
 <?php endif; ?>
