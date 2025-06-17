@@ -40,6 +40,9 @@ class P001Agreements implements DataPatchInterface
         $this->agreementFactory = $agreementFactory;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function apply()
     {
         $this->setup->startSetup();
@@ -85,6 +88,11 @@ class P001Agreements implements DataPatchInterface
         return [];
     }
 
+    /**
+     * Returns the content of the agreement.
+     *
+     * @return string
+     */
     protected function _getAgreementContent()
     {
         return '<h1>Terms of Service</h1>

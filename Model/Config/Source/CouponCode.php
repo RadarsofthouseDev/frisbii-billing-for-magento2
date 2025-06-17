@@ -27,16 +27,21 @@ class CouponCode implements \Magento\Framework\Data\OptionSourceInterface
      */
     private $storeManager;
 
+    /**
+     * CouponCode constructor.
+     *
+     * @param Data $helper
+     * @param Coupon $couponHelper
+     * @param StoreManagerInterface $storeManager
+     */
     public function __construct(
         Data $helper,
         Coupon $couponHelper,
         StoreManagerInterface $storeManager
-    )
-    {
+    ) {
         $this->helper = $helper;
         $this->couponHelper = $couponHelper;
         $this->storeManager = $storeManager;
-
     }
 
     /**

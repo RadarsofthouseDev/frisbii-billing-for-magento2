@@ -9,7 +9,7 @@ $paymentIcons = $block->getPaymentIcons();
         $imageUrl = $block->getViewFileUrl($fieldUrl);
         ?>
         <img class="billwerkplus-payment-icon"
-             src="<?= $block->escapeUrl($imageUrl); ?>" alt="<?= $block->escapeUrl($paymentIcon) ?>">
+             src="<?= $escaper->escapeUrl($imageUrl); ?>" alt="<?= $escaper->escapeUrl($paymentIcon) ?>">
     <?php endforeach; ?>
 <?php endif; ?>
 

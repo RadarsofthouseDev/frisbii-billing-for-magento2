@@ -16,10 +16,14 @@ class Addon extends AbstractModifier
      */
     protected $addon;
 
+    /**
+     * Constructor.
+     *
+     * @param \Radarsofthouse\BillwerkPlusSubscription\Model\Config\Source\Addon $addon
+     */
     public function __construct(
         \Radarsofthouse\BillwerkPlusSubscription\Model\Config\Source\Addon $addon
-    )
-    {
+    ) {
         $this->addon = $addon;
     }
 
@@ -29,7 +33,7 @@ class Addon extends AbstractModifier
     protected $meta = [];
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function modifyData(array $data)
     {
@@ -37,7 +41,7 @@ class Addon extends AbstractModifier
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function modifyMeta(array $meta)
     {
@@ -50,6 +54,8 @@ class Addon extends AbstractModifier
 
     /**
      * Adds fields to the meta-data
+     *
+     * @return void
      */
     protected function addFields()
     {
@@ -81,6 +87,7 @@ class Addon extends AbstractModifier
      * Get description field config
      *
      * @return array
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     protected function getSelectField()
     {
@@ -99,6 +106,5 @@ class Addon extends AbstractModifier
                 ],
             ],
         ];
-
     }
 }

@@ -337,7 +337,8 @@ class Data extends AbstractHelper
         $shippingAmount = ($order->getShippingInclTax() * 100);
         if ($shippingAmount != 0) {
             $line = [
-                'ordertext' => !empty($order->getShippingDescription()) ? $order->getShippingDescription() : __('Shipping')->render(),
+                'ordertext' => !empty($order->getShippingDescription()) ? $order->getShippingDescription() :
+                    __('Shipping')->render(),
                 'amount' => $this->toInt($shippingAmount),
                 'quantity' => 1,
             ];
@@ -459,20 +460,25 @@ class Data extends AbstractHelper
             $payment = $order->getPayment();
             $payment->setLastTransId($paymentData['transaction']);
             $payment->setTransactionId($paymentData['transaction']);
-            $payment->setAdditionalInformation([\Magento\Sales\Model\Order\Payment\Transaction::RAW_DETAILS => (array)$paymentData]);
+            $payment->setAdditionalInformation([\Magento\Sales\Model\Order\Payment\Transaction::RAW_DETAILS =>
+                (array)$paymentData]);
 
             $formatedPrice = $order->getBaseCurrency()->formatTxt($order->getGrandTotal());
 
             $transaction = $this->transactionBuilder->setPayment($payment)
                 ->setOrder($order)
                 ->setTransactionId($paymentData['transaction'])
-                ->setAdditionalInformation([\Magento\Sales\Model\Order\Payment\Transaction::RAW_DETAILS => (array)$paymentData])
+                ->setAdditionalInformation([\Magento\Sales\Model\Order\Payment\Transaction::RAW_DETAILS =>
+                    (array)$paymentData])
                 ->setFailSafe(true)
                 ->build($state)
                 ->setIsClosed($isClosed);
 
             // Add transaction to payment
-            $payment->addTransactionCommentsToOrder($transaction, __('The authorized amount is %1.', $formatedPrice));
+            $payment->addTransactionCommentsToOrder(
+                $transaction,
+                __('The authorized amount is %1.', $formatedPrice)
+            );
             $payment->setParentTransactionId(null);
 
             // Save payment, transaction and order
@@ -486,13 +492,18 @@ class Data extends AbstractHelper
 
                 $order->setState($orderStatusAfterPayment, true);
                 $order->setStatus($orderStatusAfterPayment);
-                $order->addStatusToHistory($order->getStatus(), 'Billwerk+ : The authorized amount is ' . $totalDue);
+                $order->addStatusToHistory(
+                    $order->getStatus(),
+                    'Billwerk+ : The authorized amount is ' . $totalDue
+                );
                 $order->save();
             }
 
             return $transaction->getTransactionId();
         } catch (\Exception $e) {
-            throw new \Magento\Framework\Exception\PaymentException(__('addTransactionToOrder() Exception : ' . $e->getMessage()));
+            throw new \Magento\Framework\Exception\PaymentException(
+                __('addTransactionToOrder() Exception : ' . $e->getMessage())
+            );
         }
     }
 
@@ -521,11 +532,16 @@ class Data extends AbstractHelper
 
         if (array_key_exists('card_transaction', $transactionData)) {
             $cardTransaction = $transactionData['card_transaction'];
-            $transactionData['card_transaction_ref_transaction'] = array_key_exists('ref_transaction', $cardTransaction) ? $cardTransaction['ref_transaction'] : '';
-            $transactionData['card_transaction_fingerprint'] = array_key_exists('fingerprint', $cardTransaction) ? $cardTransaction['fingerprint'] : '';
-            $transactionData['card_transaction_card_type'] = array_key_exists('card_type', $cardTransaction) ? $cardTransaction['card_type'] : '';
-            $transactionData['card_transaction_exp_date'] = array_key_exists('exp_date', $cardTransaction) ? $cardTransaction['exp_date'] : '';
-            $transactionData['card_transaction_masked_card'] = array_key_exists('masked_card', $cardTransaction) ? $cardTransaction['masked_card'] : '';
+            $transactionData['card_transaction_ref_transaction'] =
+                array_key_exists('ref_transaction', $cardTransaction) ? $cardTransaction['ref_transaction'] : '';
+            $transactionData['card_transaction_fingerprint'] = array_key_exists('fingerprint', $cardTransaction) ?
+                $cardTransaction['fingerprint'] : '';
+            $transactionData['card_transaction_card_type'] = array_key_exists('card_type', $cardTransaction) ?
+                $cardTransaction['card_type'] : '';
+            $transactionData['card_transaction_exp_date'] = array_key_exists('exp_date', $cardTransaction) ?
+                $cardTransaction['exp_date'] : '';
+            $transactionData['card_transaction_masked_card'] = array_key_exists('masked_card', $cardTransaction) ?
+                $cardTransaction['masked_card'] : '';
             unset($transactionData['card_transaction']);
         }
 
@@ -542,8 +558,12 @@ class Data extends AbstractHelper
      * @return null|int (Magento Transaction ID)
      * @throws PaymentException
      */
-    public function addCaptureTransactionToOrder(Order $order, array $transactionData = [], array $chargeRes = [], $authorizationTxnId = null)
-    {
+    public function addCaptureTransactionToOrder(
+        Order $order,
+        array $transactionData = [],
+        array $chargeRes = [],
+        $authorizationTxnId = null
+    ) {
         try {
             // prepare transaction data
             $transactionData = $this->prepareCaptureTransactionData($transactionData);
@@ -590,7 +610,9 @@ class Data extends AbstractHelper
             }
             return $transactionId;
         } catch (\Exception $e) {
-            throw new \Magento\Framework\Exception\PaymentException(__('addCaptureTransactionToOrder() Exception : ' . $e->getMessage()));
+            throw new \Magento\Framework\Exception\PaymentException(
+                __('addCaptureTransactionToOrder() Exception : ' . $e->getMessage())
+            );
         }
     }
 
@@ -657,7 +679,9 @@ class Data extends AbstractHelper
 
             return $transaction->save()->getTransactionId();
         } catch (\Exception $e) {
-            throw new \Magento\Framework\Exception\PaymentException(__('addRefundTransactionToOrder() Exception : ' . $e->getMessage()));
+            throw new \Magento\Framework\Exception\PaymentException(
+                __('addRefundTransactionToOrder() Exception : ' . $e->getMessage())
+            );
         }
     }
 
@@ -755,12 +779,14 @@ class Data extends AbstractHelper
      */
     public function isBillwerkSubscriptionProduct(Product $product)
     {
-        return $product->getBillwerkSubEnabled() && $product->getBillwerkSubPlan() && !empty($product->getBillwerkSubPlan());
+        return $product->getBillwerkSubEnabled() && $product->getBillwerkSubPlan()
+            && !empty($product->getBillwerkSubPlan());
     }
 
     /**
      * Return true if the product is Billwerk+ subscription product by ID
-     * @param $productId
+     *
+     * @param int $productId
      * @return bool
      */
     public function isBillwerkSubscriptionProductById($productId)
@@ -792,8 +818,7 @@ class Data extends AbstractHelper
 
         if (!empty($plan['schedule_type'])) {
             $type = $plan['schedule_type'];
-            if (
-                !empty($plan['schedule_fixed_day']) && !empty($plan['interval_length'])
+            if (!empty($plan['schedule_fixed_day']) && !empty($plan['interval_length'])
                 && $plan['schedule_type'] == 'month_fixedday'
             ) {
                 if ($plan['schedule_fixed_day'] == 28) {
@@ -810,7 +835,8 @@ class Data extends AbstractHelper
             }
             $scheduleText = $this->planScheduleTypeText($type);
             if (!empty($scheduleText)) {
-                $result = '/' . ($plan['interval_length'] > 1 ? "{$plan['interval_length']} {$scheduleText}s" : "$scheduleText");
+                $result = '/' . ($plan['interval_length'] > 1 ?
+                        "{$plan['interval_length']} {$scheduleText}s" : "$scheduleText");
             }
         }
 
@@ -859,6 +885,7 @@ class Data extends AbstractHelper
                     return $data[$planHandle];
                 }
             } catch (NoSuchEntityException $e) {
+                return '';
             }
         }
 
@@ -868,7 +895,7 @@ class Data extends AbstractHelper
     /**
      * Load Cache
      *
-     * @param $storeId
+     * @param int $storeId
      * @return array
      */
     private function loadPlansFromCache($storeId = null)
@@ -886,7 +913,7 @@ class Data extends AbstractHelper
     /**
      * Refresh cache
      *
-     * @param $storeId
+     * @param int $storeId
      * @return array
      */
     private function createPlansCache($storeId)

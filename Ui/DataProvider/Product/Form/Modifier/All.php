@@ -18,6 +18,7 @@ class All extends AbstractModifier implements \Magento\Ui\DataProvider\Modifier\
     protected $meta = [];
 
     /**
+     * Constructor.
      * @param PoolInterface $pool
      */
     public function __construct(
@@ -27,7 +28,7 @@ class All extends AbstractModifier implements \Magento\Ui\DataProvider\Modifier\
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function modifyData(array $data)
     {
@@ -40,7 +41,7 @@ class All extends AbstractModifier implements \Magento\Ui\DataProvider\Modifier\
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function modifyMeta(array $meta)
     {

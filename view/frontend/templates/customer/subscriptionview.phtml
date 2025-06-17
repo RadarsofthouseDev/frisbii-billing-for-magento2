@@ -14,128 +14,128 @@ $addonsName = $block->getAddonsName($addons);
     <table class="data table subscription_details">
         <tbody>
         <tr>
-            <td><?php echo __("Status"); ?></td>
-            <td><?php echo __($subscription['is_cancelled'] ?
-                    'Cancel' : ucfirst(str_replace('_', ' ',$subscription['state']))); ?>
-                <?php if($subscription['in_trial']): ?>
+            <td><?= $escaper->escapeHtml(__("Status")); ?></td>
+            <td><?= $escaper->escapeHtml(__($subscription['is_cancelled'] ?
+                    'Cancel' : ucfirst(str_replace('_', ' ', $subscription['state'])))); ?>
+                <?php if ($subscription['in_trial']): ?>
                     <span class="billwerkplus-subscription-trial">
-                        / <?php echo __('Trial period'); ?>
+                        / <?= $escaper->escapeHtml(__('Trial period')); ?>
                     </span>
                 <?php endif; ?>
             </td>
         </tr>
         <tr>
-            <td><?php echo __("Plan"); ?></td>
-            <td><?php echo $block->getPlanName($subscription['plan']) . $addonsName; ?></td>
+            <td><?= $escaper->escapeHtml(__("Plan")); ?></td>
+            <td><?= $escaper->escapeHtml($block->getPlanName($subscription['plan']) . $addonsName); ?></td>
         </tr>
         <?php if ($subscription['in_trial']): ?>
             <?php if (array_key_exists('trial_start', $subscription)): ?>
                 <tr>
-                    <td><?php echo __("Trial period start date"); ?></td>
-                    <td><?php echo $block->dateFormat($subscription['trial_start']); ?></td>
+                    <td><?= $escaper->escapeHtml(__("Trial period start date")); ?></td>
+                    <td><?= $escaper->escapeHtml($block->dateFormat($subscription['trial_start'])); ?></td>
                 </tr>
             <?php endif; ?>
             <?php if (array_key_exists('trial_end', $subscription)): ?>
                 <tr>
-                    <td><?php echo __("Trial period end date"); ?></td>
-                    <td><?php echo $block->dateFormat($subscription['trial_end']); ?></td>
+                    <td><?= $escaper->escapeHtml(__("Trial period end date")); ?></td>
+                    <td><?= $escaper->escapeHtml($block->dateFormat($subscription['trial_end'])); ?></td>
                 </tr>
             <?php endif; ?>
         <?php endif; ?>
         <tr>
-            <td><?php echo __("Start Payment date"); ?></td>
-            <td><?php echo $block->dateFormat($subscription['first_period_start']); ?></td>
+            <td><?= $escaper->escapeHtml(__("Start Payment date")); ?></td>
+            <td><?= $escaper->escapeHtml($block->dateFormat($subscription['first_period_start'])); ?></td>
         </tr>
-        <?php if(array_key_exists('current_period_start', $subscription)): ?>
+        <?php if (array_key_exists('current_period_start', $subscription)): ?>
         <tr>
-            <td><?php echo __("Last Payment date"); ?></td>
-            <td><?php echo $block->dateFormat($subscription['current_period_start']); ?></td>
+            <td><?= $escaper->escapeHtml(__("Last Payment date")); ?></td>
+            <td><?= $escaper->escapeHtml($block->dateFormat($subscription['current_period_start'])); ?></td>
         </tr>
         <?php endif; ?>
-        <?php if(!$subscription['is_cancelled']): ?>
+        <?php if (!$subscription['is_cancelled']): ?>
         <tr>
-            <td><?php echo __("Next Payment date"); ?></td>
-            <td><?php echo $block->dateFormat($subscription['next_period_start']); ?></td>
+            <td><?= $escaper->escapeHtml(__("Next Payment date")); ?></td>
+            <td><?= $escaper->escapeHtml($block->dateFormat($subscription['next_period_start'])); ?></td>
         </tr>
         <?php endif; ?>
-        <?php if($subscription['is_cancelled'] && $subscription['state'] == 'active'): ?>
+        <?php if ($subscription['is_cancelled'] && $subscription['state'] == 'active'): ?>
             <tr>
-                <td><?php echo __("Expire date"); ?></td>
-                <td><?php echo $block->dateFormat($subscription['expires']); ?></td>
+                <td><?= $escaper->escapeHtml(__("Expire date")); ?></td>
+                <td><?= $escaper->escapeHtml($block->dateFormat($subscription['expires'])); ?></td>
             </tr>
         <?php endif; ?>
         <tr>
-            <td><?php echo __("Payment methods"); ?></td>
+            <td><?= $escaper->escapeHtml(__("Payment methods")); ?></td>
             <td></td>
         </tr>
-        <?php if(!empty($paymentMethods)):
+        <?php if (!empty($paymentMethods)):
             foreach ($paymentMethods as $paymentMethod):
                 ?>
                 <tr>
-                    <td><?php echo $paymentMethod[$paymentMethod['payment_type']]['masked_card']; ?></td>
-                    <td><?php echo $paymentMethod['payment_type']?></td>
+                    <td><?= $escaper->escapeHtml($paymentMethod[$paymentMethod['payment_type']]['masked_card']); ?></td>
+                    <td><?= $escaper->escapeHtml($paymentMethod['payment_type']) ?></td>
                 </tr>
             <?php endforeach; ?>
         <?php endif; ?>
         <tr>
-            <td><?php echo __("Action"); ?></td>
+            <td><?= $escaper->escapeHtml(__("Action")); ?></td>
             <td>
-                <?php if($subscription['state'] == 'active'
+                <?php if ($subscription['state'] == 'active'
                     && !$subscription['is_cancelled'] && !$subscription['in_trial'] && $block->enablePause()): ?>
-                <form action="<?php echo $block->getUrl('billwerkplussubscription/subscription/action') ?>"
+                <form action="<?= $escaper->escapeUrl($block->getUrl('billwerkplussubscription/subscription/action')) ?>"
                       method="post" style="display: inline-block;">
-                    <input type="hidden" name="form_key"  value="<?php echo $block->getFormKey();?>">
-                    <input type="hidden" name="handle" value="<?php echo $subscription['handle']; ?>">
+                    <input type="hidden" name="form_key"  value="<?= $escaper->escapeHtml($block->getFormKey());?>">
+                    <input type="hidden" name="handle" value="<?= $escaper->escapeHtml($subscription['handle']); ?>">
                     <input type="hidden" name="action" value="on_hold">
                     <button type="submit" title="Pause" class="action primary">
                         <span>Pause</span>
                     </button>
                 </form>
                 <?php endif; ?>
-                <?php if($subscription['state'] == 'on_hold' && $block->enablePause()): ?>
-                <form action="<?php echo $block->getUrl('billwerkplussubscription/subscription/action') ?>"
+                <?php if ($subscription['state'] == 'on_hold' && $block->enablePause()): ?>
+                <form action="<?= $escaper->escapeUrl($block->getUrl('billwerkplussubscription/subscription/action')) ?>"
                       method="post" style="display: inline-block;">
-                    <input type="hidden" name="form_key"  value="<?php echo $block->getFormKey();?>">
-                    <input type="hidden" name="handle" value="<?php echo $subscription['handle']; ?>">
+                    <input type="hidden" name="form_key"  value="<?= $escaper->escapeHtml($block->getFormKey());?>">
+                    <input type="hidden" name="handle" value="<?= $escaper->escapeHtml($subscription['handle']); ?>">
                     <input type="hidden" name="action" value="reactivate">
                     <button type="submit" title="Activate" class="action primary">
                         <span>Activate</span>
                     </button>
                 </form>
                 <?php endif; ?>
-                <?php if($subscription['state'] == 'active'
+                <?php if ($subscription['state'] == 'active'
                     && !$subscription['is_cancelled'] && $block->enableCancel()): ?>
-                <form action="<?php echo $block->getUrl('billwerkplussubscription/subscription/action') ?>"
+                <form action="<?= $escaper->escapeUrl($block->getUrl('billwerkplussubscription/subscription/action')) ?>"
                       method="post" style="display: inline-block;">
-                    <input type="hidden" name="form_key"  value="<?php echo $block->getFormKey();?>">
-                    <input type="hidden" name="handle" value="<?php echo $subscription['handle']; ?>">
+                    <input type="hidden" name="form_key"  value="<?= $escaper->escapeHtml($block->getFormKey());?>">
+                    <input type="hidden" name="handle" value="<?= $escaper->escapeHtml($subscription['handle']); ?>">
                     <input type="hidden" name="action" value="cancel">
                     <button type="submit" title="Cancel" class="action primary">
                         <span>Cancel</span>
                     </button>
                 </form>
                 <?php endif; ?>
-                <?php if($subscription['is_cancelled'] && $block->enableCancel()): ?>
-                <form action="<?php echo $block->getUrl('billwerkplussubscription/subscription/action') ?>"
+                <?php if ($subscription['is_cancelled'] && $block->enableCancel()): ?>
+                <form action="<?= $escaper->escapeUrl($block->getUrl('billwerkplussubscription/subscription/action')) ?>"
                       method="post" style="display: inline-block;">
-                    <input type="hidden" name="form_key"  value="<?php echo $block->getFormKey();?>">
-                    <input type="hidden" name="handle" value="<?php echo $subscription['handle']; ?>">
+                    <input type="hidden" name="form_key"  value="<?= $escaper->escapeHtml($block->getFormKey());?>">
+                    <input type="hidden" name="handle" value="<?= $escaper->escapeHtml($subscription['handle']); ?>">
                     <input type="hidden" name="action" value="uncancel">
                     <button type="submit" title="Restart" class="action primary">
                         <span>Restart</span>
                     </button>
                 </form>
                 <?php endif; ?>
-                <?php if(in_array($subscription['state'], ['active', 'pending']) && !$subscription['is_cancelled']): ?>
-                <form action="<?php echo $block->getUrl('billwerkplussubscription/subscription/action') ?>"
+                <?php if (in_array($subscription['state'], ['active', 'pending']) && !$subscription['is_cancelled']): ?>
+                <form action="<?= $escaper->escapeUrl($block->getUrl('billwerkplussubscription/subscription/action')) ?>"
                       method="post" style="display: inline-block;">
-                    <input type="hidden" name="form_key" value="<?php echo $block->getFormKey();?>">
-                    <input type="hidden" name="handle" value="<?php echo $subscription['handle']; ?>">
+                    <input type="hidden" name="form_key" value="<?= $escaper->escapeHtml($block->getFormKey());?>">
+                    <input type="hidden" name="handle" value="<?= $escaper->escapeHtml($subscription['handle']); ?>">
                     <input type="hidden" name="action" value="add_payment">
-                    <button type="submit" title="<?php echo $subscription['payment_method_added'] ?
-                        'Change Payment' : 'Add payment'?>" class="action primary">
-                        <span><?php echo $subscription['payment_method_added'] ?
-                                'Change Payment' : 'Add payment'?></span>
+                    <button type="submit" title="<?= $escaper->escapeHtml($subscription['payment_method_added'] ?
+                        'Change Payment' : 'Add payment'); ?>" class="action primary">
+                        <span><?= $escaper->escapeHtml($subscription['payment_method_added'] ?
+                                'Change Payment' : 'Add payment'); ?></span>
                     </button>
                 </form>
                 <?php endif; ?>

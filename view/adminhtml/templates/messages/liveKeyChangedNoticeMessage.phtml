@@ -3,7 +3,7 @@
 /** @var \Magento\Framework\View\Element\Template $block */
 ?>
 
-<?= $block->escapeHtml(__(
+<?= $escaper->escapeHtml(__(
     'Live key changed: The API key identifies the Billwerk account. Only subscription plan handles that exist under the account of the API key can be used to submit subscription orders. <a href="%1" target="_blank">Read more about this here.</a>',
     $block->getData('link')
 ), ['a']); ?>

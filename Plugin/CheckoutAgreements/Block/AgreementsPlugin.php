@@ -20,7 +20,7 @@ class AgreementsPlugin
 
     /**
      * Constructor
-     * 
+     *
      * @param CheckoutSession $checkoutSession
      * @param HelperData $helper
      */
@@ -34,7 +34,7 @@ class AgreementsPlugin
 
     /**
      * After plugin for getAgreements method
-     * 
+     *
      * @param Agreements $subject
      * @param \Magento\CheckoutAgreements\Model\ResourceModel\Agreement\Collection $result
      * @return \Magento\CheckoutAgreements\Model\ResourceModel\Agreement\Collection
@@ -58,7 +58,7 @@ class AgreementsPlugin
 
     /**
      * Check if the cart has a subscription product
-     * 
+     *
      * @return bool
      */
     protected function _hasBillwerkSubscriptionProduct()

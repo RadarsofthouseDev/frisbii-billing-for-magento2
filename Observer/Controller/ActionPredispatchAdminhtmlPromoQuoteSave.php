@@ -22,7 +22,7 @@ class ActionPredispatchAdminhtmlPromoQuoteSave implements ObserverInterface
         $request = $observer->getEvent()->getRequest();
 
         $data = $request->getPostValue();
-        if(!empty($data['billwerk_coupon_code'])) {
+        if (!empty($data['billwerk_coupon_code'])) {
             $data['coupon_type'] = '2';
             $data['coupon_code'] = $data['billwerk_coupon_code'];
             $observer->getEvent()->getRequest()->setPostValue($data);

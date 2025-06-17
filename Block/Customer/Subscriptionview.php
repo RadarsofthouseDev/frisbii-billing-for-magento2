@@ -224,7 +224,8 @@ class Subscriptionview extends Template
 
     /**
      *  Get subscription addons.
-     * @param $subscription
+     *
+     * @param array $subscription
      * @return array
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
@@ -251,7 +252,7 @@ class Subscriptionview extends Template
     /**
      * Get subscription addons name.
      *
-     * @param $addOns
+     * @param array $addOns
      * @return string
      */
     public function getAddonsName($addOns)
@@ -261,7 +262,7 @@ class Subscriptionview extends Template
         }
         $names = [];
         foreach ($addOns as $addOn) {
-            if(array_key_exists('add_on', $addOn) && array_key_exists('name', $addOn['add_on'])) {
+            if (array_key_exists('add_on', $addOn) && array_key_exists('name', $addOn['add_on'])) {
                 $names[] = $addOn['add_on']['name'];
             }
         }

@@ -7,8 +7,8 @@ $adminBillPlusLink = "https://admin.billwerk.plus/#/rp/";
 <?php if ($handle):
     $customerLink = $adminBillPlusLink."customers/customers/customer/".$handle; ?>
 <div class="fieldset-wrapper-title">
-    <span class="title"><?php echo __('Subscriber handle') ?>:
-        <a target="_blank" href="<?=$customerLink?>"><?php echo $handle; ?></a>
+    <span class="title"><?= $escaper->escapeHtml(__('Subscriber handle')) ?>:
+        <a target="_blank" href="<?= $escaper->escapeHtml($customerLink) ?>"><?= $escaper->escapeHtml($handle); ?></a>
     </span>
 </div>
 <div id="view_subscription_grid" data-grid-id="view_subscription_grid">
@@ -16,9 +16,9 @@ $adminBillPlusLink = "https://admin.billwerk.plus/#/rp/";
         <table class="data-grid" id="view_subscription_grid_table">
             <thead>
             <tr>
-                <th class="data-grid-th  no-link col-handle"><span><?php echo __('Subscription handle') ?></span></th>
-                <th class="data-grid-th  no-link col-plan"><span><?php echo __('Plan handle') ?></span></th>
-                <th class="data-grid-th  no-link col-state"><span><?php echo __('Subscription status') ?></span></th>
+                <th class="data-grid-th  no-link col-handle"><span><?= $escaper->escapeHtml(__('Subscription handle')) ?></span></th>
+                <th class="data-grid-th  no-link col-plan"><span><?= $escaper->escapeHtml(__('Plan handle')) ?></span></th>
+                <th class="data-grid-th  no-link col-state"><span><?= $escaper->escapeHtml(__('Subscription status')) ?></span></th>
             </tr>
             </thead>
             <tbody>
@@ -30,25 +30,25 @@ $adminBillPlusLink = "https://admin.billwerk.plus/#/rp/";
                     ?>
                     <tr title="">
                         <td class="col-handle">
-                            <a target="_blank" href="<?=$handleLink?>">
-                                <?php echo $subscription['handle'] ?>
+                            <a target="_blank" href="<?= $escaper->escapeHtml($handleLink) ?>">
+                                <?= $escaper->escapeHtml($subscription['handle']) ?>
                             </a>
                         </td>
                         <td class="col-plan">
-                            <a target="_blank" href="<?=$planLink?>">
-                                <?php echo $subscription['plan'] ?>
+                            <a target="_blank" href="<?= $escaper->escapeHtml($planLink) ?>">
+                                <?= $escaper->escapeHtml($subscription['plan']) ?>
                             </a>
                         </td>
                         <td class="col-state">
-                            <?php echo $subscription['is_cancelled'] ? 'Cancel' :
-                                ucfirst(str_replace('_', ' ',$subscription['state'])); ?>
+                            <?= $escaper->escapeHtml($subscription['is_cancelled'] ? 'Cancel' :
+                                ucfirst(str_replace('_', ' ', $subscription['state']))); ?>
                         </td>
                     </tr>
                 <?php endforeach;
             else:
                 ?>
                 <tr class="data-grid-tr-no-data even">
-                    <td class="empty-text" colspan="11"><?php echo __('We couldn\'t find any records.') ?></td>
+                    <td class="empty-text" colspan="11"><?= $escaper->escapeHtml(__('We couldn\'t find any records.')) ?></td>
                 </tr>
             <?php endif; ?>
             </tbody>

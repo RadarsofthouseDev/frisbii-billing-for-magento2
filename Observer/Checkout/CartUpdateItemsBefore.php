@@ -15,6 +15,8 @@ class CartUpdateItemsBefore implements ObserverInterface
     protected $_helper;
 
     /**
+     * CartUpdateItemsBefore constructor.
+     *
      * @param Data $helper
      */
     public function __construct(
@@ -23,6 +25,13 @@ class CartUpdateItemsBefore implements ObserverInterface
         $this->_helper = $helper;
     }
 
+    /**
+     * Execute observer method
+     *
+     * @param Observer $observer
+     * @return void
+     * @throws LocalizedException
+     */
     public function execute(Observer $observer)
     {
         $cart = $observer->getEvent()->getCart();
@@ -32,7 +41,9 @@ class CartUpdateItemsBefore implements ObserverInterface
             if ($this->_helper->isBillwerkSubscriptionProduct($item->getProduct())) {
                 $itemId = $item->getId();
                 if (isset($info[$itemId]['qty']) && $info[$itemId]['qty'] > 1) {
-                    throw new LocalizedException(__('Subscription products can only be purchased in a quantity of one.'));
+                    throw new LocalizedException(
+                        __('Subscription products can only be purchased in a quantity of one.')
+                    );
                 }
             }
         }

@@ -18,8 +18,8 @@ if ($block->isShow()):
             </div>
             <div class="admin__page-section-item-content">
                 <strong>Handle</strong>
-                <a href="<?=$customerLink?>" target="_blank">
-                    <?= $block->getCustomerHandle() ?>
+                <a href="<?= $escaper->escapeHtml($customerLink) ?>" target="_blank">
+                    <?= $escaper->escapeHtml($block->getCustomerHandle()) ?>
                 </a>
             </div>
         </div>
@@ -30,13 +30,13 @@ if ($block->isShow()):
             </div>
             <div class="admin__page-section-item-content">
                 <strong>Handle</strong>
-                <a href="<?=$subscriptionLink?>" target="_blank">
-                    <?= $block->getSubscriptionHandle(); ?>
+                <a href="<?= $escaper->escapeHtml($subscriptionLink) ?>" target="_blank">
+                    <?= $escaper->escapeHtml($block->getSubscriptionHandle()); ?>
                 </a>
             </div>
             <div class="admin__page-section-item-content">
                 <strong>Plan</strong>
-                <span class="price"><?= $block->getPlanHandle(); ?></span>
+                <span class="price"><?= $escaper->escapeHtml($block->getPlanHandle()); ?></span>
             </div>
         </div>
     </div>

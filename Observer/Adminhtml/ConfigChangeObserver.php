@@ -11,11 +11,34 @@ use Magento\Framework\App\Config\Storage\WriterInterface;
 
 class ConfigChangeObserver implements ObserverInterface
 {
+    /**
+     * @var ManagerInterface
+     */
     protected $_messageManager;
+
+    /**
+     * @var ScopeConfigInterface
+     */
     protected $_scopeConfig;
+
+    /**
+     * @var StoreManagerInterface
+     */
     protected $_storeManager;
+
+    /**
+     * @var WriterInterface
+     */
     protected $_configWriter;
 
+    /**
+     * ConfigChangeObserver constructor.
+     *
+     * @param ManagerInterface $messageManager
+     * @param ScopeConfigInterface $scopeConfig
+     * @param StoreManagerInterface $storeManager
+     * @param WriterInterface $configWriter
+     */
     public function __construct(
         ManagerInterface $messageManager,
         ScopeConfigInterface $scopeConfig,
@@ -28,6 +51,12 @@ class ConfigChangeObserver implements ObserverInterface
         $this->_configWriter = $configWriter;
     }
 
+    /**
+     * Execute observer method
+     *
+     * @param Observer $observer
+     * @return void
+     */
     public function execute(Observer $observer)
     {
         // Get event data
@@ -76,11 +105,12 @@ class ConfigChangeObserver implements ObserverInterface
             }
         }
 
-
         $allowedPaymentPath = 'payment/billwerkplus_subscription/allowwed_payment';
         $allowedPayment = $this->_scopeConfig->getValue($allowedPaymentPath, $scope, $scopeId);
         if (strpos($allowedPayment, 'mobilepay_subscriptions') !== false) {
-            $this->_messageManager->addWarningMessage(_('MobilePay Subscription has been discontinued following the merger of MobilePay and Vipps. Please switch to using Vipps MobilePay Recurring instead.'));
+            $this->_messageManager->addWarningMessage(
+                _('MobilePay Subscription has been discontinued following the merger of MobilePay and Vipps. Please switch to using Vipps MobilePay Recurring instead.')
+            );
         }
     }
 }

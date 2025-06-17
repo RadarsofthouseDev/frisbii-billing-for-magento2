@@ -14,21 +14,27 @@ class PriceBox
     private $helper;
 
     /**
+     * Constructor.
+     *
      * @param \Radarsofthouse\BillwerkPlusSubscription\Helper\Data $helper
      */
     public function __construct(
         \Radarsofthouse\BillwerkPlusSubscription\Helper\Data $helper
-    )
-    {
+    ) {
         $this->helper = $helper;
     }
 
+    /**
+     * After render amount plugin to append subscription plan label.
+     *
+     * @param \Magento\Framework\Pricing\Render\PriceBox $subject
+     * @param string $result
+     * @return string
+     */
     public function afterRenderAmount(
         \Magento\Framework\Pricing\Render\PriceBox $subject,
         $result
-    )
-    {
-
+    ) {
 
         // Get the current product using getSaleableItem()
         $product = $subject->getSaleableItem();
@@ -38,12 +44,9 @@ class PriceBox
             try {
                 // Get all associated simple products (variations)
                 $children = $product->getTypeInstance()->getUsedProducts($product);
-
                 $lowestPriceWithLabel = null;
                 $lowestPricePlanLabel = '';
-
                 $absoluteLowestPrice = null;
-
                 foreach ($children as $child) {
                     $childPrice = (float) $child->getPrice();
                     $planLabel = $this->helper->getLabel($child);
@@ -71,7 +74,7 @@ class PriceBox
 
                 // If no valid label, just return the result (price only)
             } catch (\Exception $e) {
-                // Handle any exceptions gracefully (you can log this if needed)
+                return $result;
             }
         }
 

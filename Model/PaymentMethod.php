@@ -187,12 +187,12 @@ class PaymentMethod extends Adapter
             if ($quote->getItems()) {
                 foreach ($quote->getItems() as $item) {
                     try {
-                        if(in_array($item->getProductType(), ['simple', 'virtual'])) {
+                        if (in_array($item->getProductType(), ['simple', 'virtual'])) {
                             if ($this->helper->isBillwerkSubscriptionProductById($item->getProductId())) {
                                 return true;
                             }
-                        }elseif ($item->getProductType() === 'configurable') {
-                            if ($item->getHasChildren() ) {
+                        } elseif ($item->getProductType() === 'configurable') {
+                            if ($item->getHasChildren()) {
                                 foreach ($item->getChildren() as $child) {
                                     if ($this->helper->isBillwerkSubscriptionProductById($child->getProductId())) {
                                         return true;

@@ -34,7 +34,7 @@ class RulesApplier
     }
 
     /**
-     *  Remove all sale rule and coupon.
+     * Around applyRules plugin to remove all sale rules and coupon code
      *
      * @param \Magento\SalesRule\Model\RulesApplier $subject
      * @param Closure $proceed
@@ -56,9 +56,8 @@ class RulesApplier
         if ($this->registry->registry('billwerk_subscription_webhook_renewal_order')) {
             $this->logger->addInfo(__METHOD__ . 'Remove all sale rule and coupon. ', ['itemId' => $item->getId(), 'couponCode' => $couponCode]);
             $rules = [];
-            $couponCode = '';
+            $couponCode = [];
         }
-        $result = $proceed($item, $rules, $skipValidation, $couponCode);
-        return $result;
+        return $proceed($item, $rules, $skipValidation, $couponCode);
     }
 }

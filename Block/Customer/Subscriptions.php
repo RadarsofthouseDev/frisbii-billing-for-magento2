@@ -122,7 +122,8 @@ class Subscriptions extends \Magento\Framework\View\Element\Template
 
     /**
      *  Get subscription addons.
-     * @param $subscription
+     *
+     * @param array $subscription
      * @return array
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
@@ -146,6 +147,12 @@ class Subscriptions extends \Magento\Framework\View\Element\Template
         return $addons;
     }
 
+    /**
+     * Get total addons amount.
+     *
+     * @param array $addOns
+     * @return array
+     */
     public function getTotalAddonsAmount($addOns)
     {
         if (!is_array($addOns) || empty($addOns)) {
@@ -156,14 +163,14 @@ class Subscriptions extends \Magento\Framework\View\Element\Template
         foreach ($addOns as $addOn) {
             if (array_key_exists('currency', $addOn)) {
                 $currency = $addOn['currency'];
-            }elseif(array_key_exists('add_on', $addOn) && array_key_exists('currency', $addOn['add_on'])) {
+            } elseif (array_key_exists('add_on', $addOn) && array_key_exists('currency', $addOn['add_on'])) {
                 $currency = $addOn['add_on']['currency'];
             }
             if (array_key_exists('quantity', $addOn) && array_key_exists('amount', $addOn)) {
                 $totalPrice += ($addOn['quantity'] * $addOn['amount'])/100;
-            }elseif (array_key_exists('amount', $addOn)) {
+            } elseif (array_key_exists('amount', $addOn)) {
                 $totalPrice += $addOn['amount'] / 100;
-            }else{
+            } else {
                 $totalPrice += $addOn['add_on']['amount'] / 100;
             }
         }
@@ -234,7 +241,7 @@ class Subscriptions extends \Magento\Framework\View\Element\Template
     /**
      * Get subscription addons name.
      *
-     * @param $addOns
+     * @param array $addOns
      * @return string
      */
     public function getAddonsName($addOns)
@@ -244,7 +251,7 @@ class Subscriptions extends \Magento\Framework\View\Element\Template
         }
         $names = [];
         foreach ($addOns as $addOn) {
-            if(array_key_exists('add_on', $addOn) && array_key_exists('name', $addOn['add_on'])) {
+            if (array_key_exists('add_on', $addOn) && array_key_exists('name', $addOn['add_on'])) {
                 $names[] = $addOn['add_on']['name'];
             }
         }

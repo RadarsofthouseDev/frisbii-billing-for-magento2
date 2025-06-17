@@ -27,7 +27,6 @@ class Addon extends AbstractHelper
      */
     protected $logger = null;
 
-
     /**
      * @var SerializerInterface
      */

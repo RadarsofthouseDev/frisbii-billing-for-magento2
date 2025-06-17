@@ -19,15 +19,27 @@ class ValueProvider
      */
     private $couponCode;
 
+    /**
+     * Constructor.
+     *
+     * @param DiscountHandle $discountHandle
+     * @param CouponCode $couponCode
+     */
     public function __construct(
         DiscountHandle $discountHandle,
         CouponCode $couponCode
-    )
-    {
+    ) {
         $this->discountHandle = $discountHandle;
         $this->couponCode = $couponCode;
     }
 
+    /**
+     * After getMetadataValues plugin to add custom fields for Billwerk+.
+     *
+     * @param \Magento\SalesRule\Model\Rule\Metadata\ValueProvider $subject
+     * @param array $result
+     * @return array
+     */
     public function afterGetMetadataValues(
         \Magento\SalesRule\Model\Rule\Metadata\ValueProvider $subject,
         $result

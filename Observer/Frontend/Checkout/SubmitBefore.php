@@ -240,7 +240,7 @@ class SubmitBefore implements \Magento\Framework\Event\ObserverInterface
         if ($savedCustomer) {
             try {
                 $this->sendCustomEmail($savedCustomer);
-            }catch (LocalizedException $e) {
+            } catch (LocalizedException $e) {
                 $this->logger->addInfo(__METHOD__);
                 $this->logger->addInfo("Can't send email to " . $savedCustomer->getEmail() . " with Customer Id: " . $savedCustomer->getId());
             }

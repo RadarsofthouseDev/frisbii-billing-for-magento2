@@ -2,7 +2,6 @@
 
 namespace Radarsofthouse\BillwerkPlusSubscription\Plugin\Frontend\Magento\ConfigurableProduct\Block\Product\View\Type;
 
-
 class Configurable
 {
 
@@ -16,8 +15,7 @@ class Configurable
      */
     public function __construct(
         \Radarsofthouse\BillwerkPlusSubscription\Helper\Data $helper
-    )
-    {
+    ) {
         $this->helper = $helper;
     }
 
@@ -25,7 +23,7 @@ class Configurable
      * Modify JSON configuration to include subscription frequency.
      *
      * @param \Magento\ConfigurableProduct\Block\Product\View\Type\Configurable $subject
-     * @param $result
+     * @param string $result
      * @return false|string
      */
     public function afterGetJsonConfig(

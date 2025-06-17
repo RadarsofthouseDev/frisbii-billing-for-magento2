@@ -3,7 +3,7 @@
 /** @var \Magento\Framework\View\Element\Template $block */
 ?>
 
-<?= $block->escapeHtml(__(
+<?= $escaper->escapeHtml(__(
     'Test mode disabled: You just disabled test mode, meaning your live API key will now be used. Please note that all subscription products previously linked to plans on your live account are now restored. If you haven\'t linked your subscription products with your test account, they will remain unlinked. <a href="%1" target="_blank">Read more about this here.</a>',
     $block->getData('link')
 ), ['a']); ?>

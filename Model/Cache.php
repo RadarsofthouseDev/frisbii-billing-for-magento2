@@ -6,8 +6,8 @@ namespace Radarsofthouse\BillwerkPlusSubscription\Model;
 class Cache extends \Magento\Framework\Cache\Frontend\Decorator\TagScope
 {
 
-    const TYPE_IDENTIFIER = 'billwerk_plus_optimize_cache';
-    const CACHE_TAG = 'BILLWERK_PLUS_OPTIMIZE';
+    public const TYPE_IDENTIFIER = 'billwerk_plus_optimize_cache';
+    public const CACHE_TAG = 'BILLWERK_PLUS_OPTIMIZE';
 
     /**
      * @param \Magento\Framework\App\Cache\Type\FrontendPool $cacheFrontendPool

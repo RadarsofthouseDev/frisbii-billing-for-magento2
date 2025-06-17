@@ -27,16 +27,21 @@ class DiscountHandle implements \Magento\Framework\Data\OptionSourceInterface
      */
     private $storeManager;
 
+    /**
+     * DiscountHandle constructor.
+     *
+     * @param Data $helper
+     * @param Discount $discountHelper
+     * @param StoreManagerInterface $storeManager
+     */
     public function __construct(
         Data $helper,
         Discount $discountHelper,
         StoreManagerInterface $storeManager
-    )
-    {
+    ) {
         $this->helper = $helper;
         $this->discountHelper = $discountHelper;
         $this->storeManager = $storeManager;
-
     }
 
     /**
