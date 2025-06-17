@@ -59,7 +59,7 @@ class P001Agreements implements DataPatchInterface
                 "is_html" => 1,
                 "mode" => 1,
                 "stores" => [0],
-                "checkbox_text" => "Billwerk+ Optimize Terms and Conditions",
+                "checkbox_text" => "Frisbii Billing Terms and Conditions",
                 "content" => $content,
                 "content_height" => null
             ];

@@ -1,9 +1,10 @@
 <?php
+
 /**
  * @var $block \Radarsofthouse\BillwerkPlusSubscription\Block\Adminhtml\Order\View
  */
 if ($block->isShow()):
-    $adminBillPlusLink = "https://admin.billwerk.plus/#/rp/";
+    $adminBillPlusLink = "https://app.frisbii.com/#/rp/";
     $customerLink = $adminBillPlusLink."customers/customers/customer/".$block->getCustomerHandle();
     $subscriptionLink = $adminBillPlusLink."subscriptions/subscription/".$block->getSubscriptionHandle();
     ?>
@@ -39,7 +40,6 @@ if ($block->isShow()):
                 <span class="price"><?= $escaper->escapeHtml($block->getPlanHandle()); ?></span>
             </div>
         </div>
-    </div>
-</section>
-<br>
+    </section>
+    <br>
 <?php endif; ?>

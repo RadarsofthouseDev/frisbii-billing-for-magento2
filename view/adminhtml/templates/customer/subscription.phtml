@@ -2,7 +2,7 @@
 /* @var $block \Radarsofthouse\BillwerkPlusSubscription\Block\Adminhtml\Customer\Edit\Tab\View\Subscription */
 $handle = $block->getSubscriberHandle();
 $subscriptions = $block->getSubscriptions();
-$adminBillPlusLink = "https://admin.billwerk.plus/#/rp/";
+$adminBillPlusLink = "https://app.frisbii.com/#/rp/";
 ?>
 <?php if ($handle):
     $customerLink = $adminBillPlusLink."customers/customers/customer/".$handle; ?>
@@ -54,5 +54,4 @@ $adminBillPlusLink = "https://admin.billwerk.plus/#/rp/";
             </tbody>
         </table>
     </div>
-</div>
 <?php endif; ?>

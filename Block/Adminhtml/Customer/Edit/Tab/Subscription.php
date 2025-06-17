@@ -1,8 +1,10 @@
 <?php
+
 /**
  * Copyright © radarsofthouse.dk All rights reserved.
  * See COPYING.txt for license details.
  */
+
 declare(strict_types=1);
 
 namespace Radarsofthouse\BillwerkPlusSubscription\Block\Adminhtml\Customer\Edit\Tab;
@@ -46,7 +48,7 @@ class Subscription extends Template implements TabInterface
      */
     public function getTabLabel()
     {
-        return __('Billwerk+ Subscription');
+        return __('Frisbii Subscription');
     }
 
     /**
@@ -54,7 +56,7 @@ class Subscription extends Template implements TabInterface
      */
     public function getTabTitle()
     {
-        return __('Billwerk+ Subscription');
+        return __('Frisbii Subscription');
     }
 
     /**
@@ -79,7 +81,7 @@ class Subscription extends Template implements TabInterface
     public function isAjaxLoaded()
     {
         return true;
-//        return false;
+        //        return false;
     }
 
     /**

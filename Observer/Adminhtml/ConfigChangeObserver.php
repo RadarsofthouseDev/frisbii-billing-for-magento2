@@ -84,21 +84,21 @@ class ConfigChangeObserver implements ObserverInterface
                     $this->_messageManager->addComplexNoticeMessage(
                         'testModeEnabledNoticeMessage',
                         [
-                            'link' => 'https://optimize-docs.billwerk.com/reference/account'
+                            'link' => 'https://docs.frisbii.com/reference/account'
                         ]
                     );
                 } elseif ($path == $testModePath && $testMode == 1) {
                     $this->_messageManager->addComplexNoticeMessage(
                         'testModeDisabledNoticeMessage',
                         [
-                            'link' => 'https://optimize-docs.billwerk.com/reference/account'
+                            'link' => 'https://docs.frisbii.com/reference/account'
                         ]
                     );
                 } elseif ($path == $liveKeyPath) {
                     $this->_messageManager->addComplexNoticeMessage(
                         'liveKeyChangedNoticeMessage',
                         [
-                            'link' => 'https://optimize-docs.billwerk.com/reference/account'
+                            'link' => 'https://docs.frisbii.com/reference/account'
                         ]
                     );
                 }

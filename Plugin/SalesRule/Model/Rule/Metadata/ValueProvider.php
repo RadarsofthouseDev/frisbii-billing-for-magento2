@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Radarsofthouse\BillwerkPlusSubscription\Plugin\SalesRule\Model\Rule\Metadata;
@@ -52,11 +53,11 @@ class ValueProvider
                         'dataType' => 'select',
                         'formElement' => 'select',
                         'componentType' => 'field',
-                        'label' => __('Billwerk+ Coupon code'),
+                        'label' => __('Frisbii Coupon code'),
                         'dataScope' => 'billwerk_coupon_code',
                         'sortOrder' => 49,
                         'options' => $this->couponCode->toOptionArray(),
-                        'notice' => _('Billwerk+ Coupon code will replace Magento Coupon code.')
+                        'notice' => _('Frisbii Coupon code will replace Magento Coupon code.')
                     ],
                 ],
             ],
@@ -69,7 +70,7 @@ class ValueProvider
                         'dataType' => 'select',
                         'formElement' => 'select',
                         'componentType' => 'field',
-                        'label' => __('Billwerk+ Discount handle'),
+                        'label' => __('Frisbii Discount handle'),
                         'dataScope' => 'billwerk_discount_handle',
                         'sortOrder' => 50,
                         'options' => $this->discountHandle->toOptionArray(),

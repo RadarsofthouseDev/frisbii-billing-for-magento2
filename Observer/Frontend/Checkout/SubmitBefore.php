@@ -1,8 +1,10 @@
 <?php
+
 /**
  * Copyright © BillwerkPlusSubscription All rights reserved.
  * See COPYING.txt for license details.
  */
+
 declare(strict_types=1);
 
 namespace Radarsofthouse\BillwerkPlusSubscription\Observer\Frontend\Checkout;
@@ -124,7 +126,7 @@ class SubmitBefore implements \Magento\Framework\Event\ObserverInterface
         $order = $observer->getOrder();
         $storeId = $order->getStoreId();
 
-        // If Payment method are not Billwerk+
+        // If Payment method are not Frisbii
         if ($quote->isMultipleShippingAddresses() || !$quote->getPayment() || !$this->helper->isOurPaymentMethod($quote->getPayment()->getMethod())) {
             return;
         }

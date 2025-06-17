@@ -1,8 +1,10 @@
 <?php
+
 /**
  * Copyright © radarsofthouse.dk All rights reserved.
  * See COPYING.txt for license details.
  */
+
 declare(strict_types=1);
 
 namespace Radarsofthouse\BillwerkPlusSubscription\Model;
@@ -86,10 +88,10 @@ class PaymentMethod extends Adapter
         Registry                  $registry,
         Logger                    $helperLogger,
         MessageManagerInterface   $messageManager,
-        CommandPoolInterface      $commandPool = null,
-        ValidatorPoolInterface    $validatorPool = null,
-        CommandManagerInterface   $commandExecutor = null,
-        LoggerInterface           $logger = null
+        ?CommandPoolInterface     $commandPool = null,
+        ?ValidatorPoolInterface   $validatorPool = null,
+        ?CommandManagerInterface  $commandExecutor = null,
+        ?LoggerInterface          $logger = null
     ) {
         $this->helper = $helper;
         $this->helperCharge = $helperCharge;
@@ -181,7 +183,7 @@ class PaymentMethod extends Adapter
      * @param CartInterface|null $quote
      * @return bool
      */
-    public function isAvailable(CartInterface $quote = null)
+    public function isAvailable(?CartInterface $quote = null)
     {
         if ($quote) {
             if ($quote->getItems()) {
@@ -275,7 +277,7 @@ class PaymentMethod extends Adapter
         if ($this->registry->registry('is_settled_webhook') == 1) {
             // When invoice created from the settled webhook then don't do the settle request to Reepay
             $this->logger->addDebug(
-                "Skip settle request to Billwerk+ when invoice is created from Billwerk+ settled webhook"
+                "Skip settle request to Frisbii when invoice is created from Frisbii settled webhook"
             );
             $charge = $chargeRes;
         } else {
@@ -325,9 +327,9 @@ class PaymentMethod extends Adapter
                 $this->logger->addDebug('set capture transaction data');
             }
         } else {
-            $this->logger->addDebug("Empty settle response from Billwerk+");
-            $this->messageManager->addError("Empty settle response from Billwerk+");
-            throw new \Magento\Framework\Exception\LocalizedException(__("Empty settle response from Billwerk+"));
+            $this->logger->addDebug("Empty settle response from Frisbii");
+            $this->messageManager->addError("Empty settle response from Frisbii");
+            throw new \Magento\Framework\Exception\LocalizedException(__("Empty settle response from Frisbii"));
         }
         return $this;
     }
@@ -420,9 +422,9 @@ class PaymentMethod extends Adapter
                 $this->logger->addDebug("set refund transaction data");
             }
         } else {
-            $this->logger->addDebug("Empty refund response from Billwerk+");
-            $this->messageManager->addErrorMessage("Empty refund response from Billwerk+");
-            throw new \Magento\Framework\Exception\LocalizedException(__('Empty refund response from Billwerk+'));
+            $this->logger->addDebug("Empty refund response from Frisbii");
+            $this->messageManager->addErrorMessage("Empty refund response from Frisbii");
+            throw new \Magento\Framework\Exception\LocalizedException(__('Empty refund response from Frisbii'));
         }
         return $this;
     }

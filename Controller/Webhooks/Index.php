@@ -1,8 +1,10 @@
 <?php
+
 /**
  * Copyright © radarsofthouse.dk All rights reserved.
  * See COPYING.txt for license details.
  */
+
 declare(strict_types=1);
 
 namespace Radarsofthouse\BillwerkPlusSubscription\Controller\Webhooks;
@@ -422,7 +424,7 @@ class Index extends Action
             $result->setData($response);
 
             return $result;
-        } catch (LocalizedException|Exception $e) {
+        } catch (LocalizedException | Exception $e) {
             $log['response_error'] = [
                 'error_code' => $e->getCode(),
                 'message' => $e->getMessage(),
@@ -434,7 +436,7 @@ class Index extends Action
     }
 
     /**
-     * Capture invoice from Billwerk+
+     * Capture invoice from Frisbii
      *
      * @param array $data
      * @return array
@@ -502,8 +504,7 @@ class Index extends Action
                 $_invoiceType = "";
                 $_createInvoice = false;
 
-                if ($this->helper->getConfig('auto_capture', $order->getStoreId())
-                ) {
+                if ($this->helper->getConfig('auto_capture', $order->getStoreId())) {
                     $_invoiceType = 'auto_capture';
                     $_createInvoice = true;
                 }
@@ -513,7 +514,7 @@ class Index extends Action
                     if (isset($chargeRes['state']) && $chargeRes['state'] == "settled"
                         && $chargeRes['amount'] == ($order->getGrandTotal() * 100)
                     ) {
-                        $_invoiceType = 'settled_in_billwerk+';
+                        $_invoiceType = 'settled_in_frisbii';
                         $_createInvoice = true;
                     }
                 }
@@ -583,12 +584,12 @@ class Index extends Action
                     ];
                 }
             } else {
-                $this->logger->addError('Cannot get transaction data from Billwerk+ : transaction ID = ' .
+                $this->logger->addError('Cannot get transaction data from Frisbii : transaction ID = ' .
                     $data['transaction']);
 
                 return [
                     'status' => 500,
-                    'message' => 'Cannot get transaction data from Billwerk+ : transaction ID = ' . $data['transaction']
+                    'message' => 'Cannot get transaction data from Frisbii : transaction ID = ' . $data['transaction']
                 ];
             }
         } catch (Exception $e) {
@@ -602,7 +603,7 @@ class Index extends Action
     }
 
     /**
-     * Refund from Billwerk+
+     * Refund from Frisbii
      *
      * @param array $data
      * @return array error message
@@ -681,7 +682,8 @@ class Index extends Action
 
                 $creditMemoIncrementId = null;
                 if ($order->canCreditmemo() && $order->getBillwerkOrderType() === 'Renewal'
-                    && $order->getInvoiceCollection()->getTotalCount()) {
+                    && $order->getInvoiceCollection()->getTotalCount()
+                ) {
                     $refundAmount = (float)$this->helper->convertAmount($refundData['amount']);
                     $availableAmount = round($order->getTotalInvoiced() - $order->getTotalRefunded(), 2);
                     $isPartial = true;
@@ -753,11 +755,11 @@ class Index extends Action
                     ];
                 }
             } else {
-                $this->logger->addError('Cannot get refund transaction data from Billwerk+ : transaction ID = '
+                $this->logger->addError('Cannot get refund transaction data from Frisbii : transaction ID = '
                     . $data['transaction']);
                 return [
                     'status' => 500,
-                    'message' => 'Cannot get refund transaction data from Billwerk+ : transaction ID = ' .
+                    'message' => 'Cannot get refund transaction data from Frisbii : transaction ID = ' .
                         $data['transaction'],
                 ];
             }
@@ -772,7 +774,7 @@ class Index extends Action
     }
 
     /**
-     * Cancel from Billwerk+
+     * Cancel from Frisbii
      *
      * @param array $data
      * @return array
@@ -824,7 +826,7 @@ class Index extends Action
             }
 
             $order->cancel();
-            $order->addStatusHistoryComment('Billwerk+ : order have been cancelled by the webhook');
+            $order->addStatusHistoryComment('Frisbii : order have been cancelled by the webhook');
             $order->save();
 
             $_payment = $order->getPayment();
@@ -994,7 +996,8 @@ class Index extends Action
                 $productOptions[$item->getProductId()] = null;
                 $options = $item->getProductOptions();
                 if (isset($options['info_buyRequest']['options']) &&
-                    is_array($options['info_buyRequest']['options'])) {
+                    is_array($options['info_buyRequest']['options'])
+                ) {
                     $productOptions[$item->getProductId()] = $options['info_buyRequest']['options'];
                 }
             }
@@ -1015,7 +1018,8 @@ class Index extends Action
             foreach ($productIds as $id => $qty) {
                 $product = $this->productRepository->getById($id);
                 if ($product->getBillwerkSubEnabled() && $product->getBillwerkSubPlan()
-                    && !empty($product->getBillwerkSubPlan())) {
+                    && !empty($product->getBillwerkSubPlan())
+                ) {
                     $options = $productOptions[$id];
                     if ($options) {
                         $quote->addProduct($product, new \Magento\Framework\DataObject([
@@ -1033,7 +1037,8 @@ class Index extends Action
             foreach ($productIds as $id => $qty) {
                 $product = $this->productRepository->getById($id);
                 if ($product->getBillwerkSubEnabled() && $product->getBillwerkSubPlan()
-                    && !empty($product->getBillwerkSubPlan())) {
+                    && !empty($product->getBillwerkSubPlan())
+                ) {
                     $productItem = $quote->getItemByProduct($product);
                     $productItem->setCustomPrice($customPrice);
                     $productItem->setOriginalCustomPrice($customPrice);
@@ -1065,22 +1070,22 @@ class Index extends Action
             $quote->getPayment()->importData(['method' => 'billwerkplus_subscription']);
 
             $quote->setTotalsCollectedFlag(false)->collectTotals()->save();
-            $this->logger->addDebug(__METHOD__.__LINE__);
+            $this->logger->addDebug(__METHOD__ . __LINE__);
             $quote->setTotalsCollectedFlag(false);
             $quote->collectTotals()
                 ->save();
-            $this->logger->addDebug(__METHOD__.__LINE__);
+            $this->logger->addDebug(__METHOD__ . __LINE__);
             $service = $this->cartManagement->submit($quote);
-            $this->logger->addDebug(__METHOD__.__LINE__);
+            $this->logger->addDebug(__METHOD__ . __LINE__);
             $increment_id = $service->getRealOrderId();
             $orderId = $service->getId();
-            $this->logger->addDebug(__METHOD__.__LINE__);
+            $this->logger->addDebug(__METHOD__ . __LINE__);
             $order = $this->orderRepository->get($orderId);
             $order->setBillwerkOrderType('Renewal');
             $order->setBillwerkSubHandle($data['subscription']);
             $order->setBillwerkSubInvHandle($data['invoice']);
             $order->save();
-            $this->logger->addDebug(__METHOD__.__LINE__);
+            $this->logger->addDebug(__METHOD__ . __LINE__);
             return [
                 'status' => 200,
                 'message' => 'created renewal order #' . $increment_id,
@@ -1094,7 +1099,7 @@ class Index extends Action
     }
 
     /**
-     * Capture the invoice for renewal order from Billwerk+
+     * Capture the invoice for renewal order from Frisbii
      *
      * @param array $data
      * @param int $try
@@ -1155,7 +1160,7 @@ class Index extends Action
                     $paymentTransactionData = $this->invoiceHelper
                         ->getTransaction($apiKey, $data['invoice'], $data['transaction']);
                 } else {
-                    $paymentTransactionData= [];
+                    $paymentTransactionData = [];
                 }
                 $chargeRes = $this->invoiceHelper->get($apiKey, $data['invoice']);
                 $this->logger->addDebug("transaction: " . $data['invoice'], $paymentTransactionData);
@@ -1203,7 +1208,7 @@ class Index extends Action
                         'message' => 'created invoice #' . $invoice->getId(),
                     ];
                 }
-            } catch (LocalizedException|Exception $e) {
+            } catch (LocalizedException | Exception $e) {
                 return [
                     'status' => 500,
                     'message' => 'webhook error: ' . $e->getMessage(),
@@ -1320,7 +1325,7 @@ class Index extends Action
             } catch (LocalizedException $e) {
                 return [
                     'status' => 500,
-                    'message' => 'settled webhook exception : '. $e->getMessage(),
+                    'message' => 'settled webhook exception : ' . $e->getMessage(),
                 ];
             }
         }
@@ -1355,7 +1360,7 @@ class Index extends Action
             } catch (LocalizedException $e) {
                 return [
                     'status' => 500,
-                    'message' => 'settled webhook exception : '. $e->getMessage(),
+                    'message' => 'settled webhook exception : ' . $e->getMessage(),
                 ];
             }
         }

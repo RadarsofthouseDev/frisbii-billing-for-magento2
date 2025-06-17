@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Email:etc/email_templates.xsd">
-    <template id="billwerk_subscription_order_confirmation" label="Billwerk+ Subscription Order confirmation" file="billwerk_subscription_order_confirmation.html" type="html" module="Radarsofthouse_BillwerkPlusSubscription" area="frontend"/>
-    <template id="billwerk_subscription_renewal" label="Billwerk+ Subscription Renewal" file="billwerk_subscription_renewal.html" type="html" module="Radarsofthouse_BillwerkPlusSubscription" area="frontend"/>
-    <template id="billwerk_subscription_new_customer" label="Billwerk+ Subscription new customer" file="billwerk_subscription_new_customer.html" type="html" module="Radarsofthouse_BillwerkPlusSubscription" area="frontend"/>
+    <template id="billwerk_subscription_order_confirmation" label="Frisbii Subscription Order confirmation" file="billwerk_subscription_order_confirmation.html" type="html" module="Radarsofthouse_BillwerkPlusSubscription" area="frontend"/>
+    <template id="billwerk_subscription_renewal" label="Frisbii Subscription Renewal" file="billwerk_subscription_renewal.html" type="html" module="Radarsofthouse_BillwerkPlusSubscription" area="frontend"/>
+    <template id="billwerk_subscription_new_customer" label="Frisbii Subscription new customer" file="billwerk_subscription_new_customer.html" type="html" module="Radarsofthouse_BillwerkPlusSubscription" area="frontend"/>
 </config>

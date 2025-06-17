@@ -3,9 +3,9 @@
     <table name="radarsofthouse_billwerkplus_customer_subs" resource="default" engine="innodb" comment="Billwerkplus Customer Subscription Table">
         <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Entity Id"/>
         <column name="customer_id" nullable="true" xsi:type="int" identity="false" comment="Customer Entity Id"/>
-        <column name="customer_handle" nullable="true" xsi:type="varchar" length="255" comment="Billwerk+ Customer Id" />
-        <column name="subscription_handle" nullable="true" xsi:type="varchar" length="255" comment="Billwerk+ Subscription Id" />
-        <column name="status" nullable="true" xsi:type="varchar" length="255" comment="Billwerk+ Subscription Status" />
+        <column name="customer_handle" nullable="true" xsi:type="varchar" length="255" comment="Frisbii Customer Id" />
+        <column name="subscription_handle" nullable="true" xsi:type="varchar" length="255" comment="Frisbii Subscription Id" />
+        <column name="status" nullable="true" xsi:type="varchar" length="255" comment="Frisbii Subscription Status" />
         <column name="order_id" nullable="true" xsi:type="int" comment="Order Id" identity="false"/>
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="entity_id"/>
@@ -57,20 +57,20 @@
         <column name="email" nullable="true" xsi:type="varchar" comment="email" length="255"/>
     </table>
     <table name="sales_order">
-        <column name="billwerk_order_type" nullable="true" xsi:type="varchar" comment="Billwerk+ Order Type" length="255"/>
-        <column name="billwerk_sub_handle" nullable="true" xsi:type="varchar" comment="Billwerk+ Subscription Handle" length="255"/>
-        <column name="billwerk_sub_inv_handle" nullable="true" xsi:type="varchar" comment="Billwerk+ Subscription Invoice Handle" length="255"/>
+        <column name="billwerk_order_type" nullable="true" xsi:type="varchar" comment="Frisbii Order Type" length="255"/>
+        <column name="billwerk_sub_handle" nullable="true" xsi:type="varchar" comment="Frisbii Subscription Handle" length="255"/>
+        <column name="billwerk_sub_inv_handle" nullable="true" xsi:type="varchar" comment="Frisbii Subscription Invoice Handle" length="255"/>
     </table>
     <table name="sales_order_grid">
-        <column name="billwerk_order_type" nullable="true" xsi:type="varchar" comment="Billwerk+ Order Type" length="255"/>
-        <column name="billwerk_sub_handle" nullable="true" xsi:type="varchar" comment="Billwerk+ Subscription Handle" length="255"/>
-        <column name="billwerk_sub_inv_handle" nullable="true" xsi:type="varchar" comment="Billwerk+ Subscription Invoice Handle" length="255"/>
+        <column name="billwerk_order_type" nullable="true" xsi:type="varchar" comment="Frisbii Order Type" length="255"/>
+        <column name="billwerk_sub_handle" nullable="true" xsi:type="varchar" comment="Frisbii Subscription Handle" length="255"/>
+        <column name="billwerk_sub_inv_handle" nullable="true" xsi:type="varchar" comment="Frisbii Subscription Invoice Handle" length="255"/>
     </table>
     <table name="catalog_product_option_type_value">
-        <column name="billwerk_addon_handle" nullable="true" xsi:type="varchar" comment="Billwerk+ addon handle" length="255"/>
+        <column name="billwerk_addon_handle" nullable="true" xsi:type="varchar" comment="Frisbii addon handle" length="255"/>
     </table>
     <table name="salesrule">
-        <column name="billwerk_discount_handle" nullable="true" xsi:type="varchar" comment="Billwerk+ discount handle" length="255"/>
-        <column name="billwerk_coupon_code" nullable="true" xsi:type="varchar" comment="Billwerk+ coupon code" length="255"/>
+        <column name="billwerk_discount_handle" nullable="true" xsi:type="varchar" comment="Frisbii discount handle" length="255"/>
+        <column name="billwerk_coupon_code" nullable="true" xsi:type="varchar" comment="Frisbii coupon code" length="255"/>
     </table>
 </schema>

@@ -4,7 +4,7 @@
     <virtualType name="Magento\Catalog\Ui\DataProvider\Product\Form\Modifier\Pool">
         <arguments>
             <argument name="modifiers" xsi:type="array">
-                <item name="Subscriptions by Billwerk+" xsi:type="array">
+                <item name="Subscriptions by Frisbii" xsi:type="array">
                     <item name="class" xsi:type="string">Radarsofthouse\BillwerkPlusSubscription\Ui\DataProvider\Product\Form\Modifier\Subscription</item>
                     <item name="sortOrder" xsi:type="number">10</item>
                 </item>
