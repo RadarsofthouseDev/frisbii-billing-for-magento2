@@ -58,10 +58,10 @@ class AgreementsConfigProvider extends BaseConfigProvider
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfiguration,
         \Magento\CheckoutAgreements\Api\CheckoutAgreementsRepositoryInterface $checkoutAgreementsRepository,
         \Magento\Framework\Escaper $escaper,
-        ?\Magento\CheckoutAgreements\Api\CheckoutAgreementsListInterface $checkoutAgreementsList = null,
-        ?\Magento\CheckoutAgreements\Model\Api\SearchCriteria\ActiveStoreAgreementsFilter $activeStoreAgreementsFilter = null,
         CheckoutSession $checkoutSession,
-        HelperData $helper
+        HelperData $helper,
+        ?\Magento\CheckoutAgreements\Api\CheckoutAgreementsListInterface $checkoutAgreementsList = null,
+        ?\Magento\CheckoutAgreements\Model\Api\SearchCriteria\ActiveStoreAgreementsFilter $activeStoreAgreementsFilter = null
     ) {
         parent::__construct(
             $scopeConfiguration,
@@ -73,8 +73,12 @@ class AgreementsConfigProvider extends BaseConfigProvider
         $this->scopeConfiguration = $scopeConfiguration;
         $this->checkoutAgreementsRepository = $checkoutAgreementsRepository;
         $this->escaper = $escaper;
-        $this->checkoutAgreementsList = $checkoutAgreementsList;
-        $this->activeStoreAgreementsFilter = $activeStoreAgreementsFilter;
+        $this->checkoutAgreementsList = $checkoutAgreementsList ?: \Magento\Framework\App\ObjectManager::getInstance()->get(
+            \Magento\CheckoutAgreements\Api\CheckoutAgreementsListInterface::class
+        );
+        $this->activeStoreAgreementsFilter = $activeStoreAgreementsFilter ?: \Magento\Framework\App\ObjectManager::getInstance()->get(
+            \Magento\CheckoutAgreements\Model\Api\SearchCriteria\ActiveStoreAgreementsFilter::class
+        );
         $this->_checkoutSession = $checkoutSession;
         $this->_helper = $helper;
     }
