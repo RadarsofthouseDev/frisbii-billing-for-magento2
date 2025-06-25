@@ -385,7 +385,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Get allowwed payment from backend configuration
+     * Get allowed payment from backend configuration
      *
      * @param Order $order
      * @return array $paymentMethods
@@ -393,7 +393,14 @@ class Data extends AbstractHelper
     public function getPaymentMethods(Order $order)
     {
         $allowedPaymentConfig = $this->getConfig('allowwed_payment', $order->getStoreId());
-        return explode(',', $allowedPaymentConfig);
+        $paymentMethods = explode(',', $allowedPaymentConfig);
+        if(strpos($allowedPaymentConfig, 'vipps_recurring') !== false){
+            $currencyCode = $order->getOrderCurrencyCode();
+            if(!in_array($currencyCode, ['DKK', 'EUR', 'NOK'])){
+                unset($paymentMethods[array_search('vipps_recurring', $paymentMethods)]);
+            }
+        }
+        return $paymentMethods;
     }
 
     /**

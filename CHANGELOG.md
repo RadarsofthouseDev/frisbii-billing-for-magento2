@@ -1,4 +1,7 @@
 # Changelog
+## Version 1.0.16 on 25 June 2025
+- Updated MobilePay Subscription payment method to change based on the quote currency.
+
 ## Version 1.0.15 on 23 June 2025
 - Rebranded Billwerk+ Optimize to Frisbii Billing
 - Fixed an error related to the applyRules() method on Magento 2.4.7 and later.

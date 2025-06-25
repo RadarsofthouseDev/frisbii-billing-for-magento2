@@ -24,12 +24,11 @@ class Paymenticons implements \Magento\Framework\Option\ArrayInterface
             ['value' => 'jcb', 'label' => __('JCB')],
             ['value' => 'maestro', 'label' => __('Maestro')],
             ['value' => 'mastercard', 'label' => __('Mastercard')],
-            ['value' => 'mobilepay', 'label' => __('Mobilepay')],
+            ['value' => 'vipps_recurring', 'label' => __('Vipps MobilePay')],
             ['value' => 'unionpay', 'label' => __('Unionpay')],
             ['value' => 'visa', 'label' => __('Visa')],
             ['value' => 'visa-electron', 'label' => __('Visa electron')],
             ['value' => 'applepay', 'label' => __('Apple Pay')],
-            ['value' => 'vipps', 'label' => __('Vipps')],
         ];
     }
 }
