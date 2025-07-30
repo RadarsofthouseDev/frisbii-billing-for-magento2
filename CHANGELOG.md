@@ -1,4 +1,7 @@
 # Changelog
+## Version 1.0.17 on 25 July 2025
+- Fixed an error on the Edit Product page.
+
 ## Version 1.0.16 on 25 June 2025
 - Updated MobilePay Subscription payment method to change based on the quote currency.
 

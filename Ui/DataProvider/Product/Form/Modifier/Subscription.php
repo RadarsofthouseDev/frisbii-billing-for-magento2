@@ -104,7 +104,7 @@ class Subscription extends AbstractModifier
             $this->meta = array_replace_recursive(
                 $meta,
                 [
-                    'subscriptions-by-billwerk' => [
+                    'subscriptions-by-frisbii' => [
                         'arguments' => [
                             'data' => [
                                 'config' => [
