@@ -2,14 +2,14 @@
 
 namespace Radarsofthouse\BillwerkPlusSubscription\Setup\Patch\Data;
 
-use Magento\Catalog\Model\Product;
+use Magento\Eav\Model\ResourceModel\Entity\Attribute\Set\CollectionFactory as AttributeSetCollectionFactory;
 use Magento\Eav\Setup\EavSetup;
 use Magento\Eav\Setup\EavSetupFactory;
-use Magento\Eav\Model\ResourceModel\Entity\Attribute\Set\CollectionFactory as AttributeSetCollectionFactory;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
+use Magento\Framework\Setup\Patch\PatchRevertableInterface;
 
-class P002UpdateGroupLabel implements DataPatchInterface
+class P002UpdateGroupLabel implements DataPatchInterface, PatchRevertableInterface
 {
     private ModuleDataSetupInterface $moduleDataSetup;
     private EavSetupFactory $eavSetupFactory;
@@ -52,6 +52,16 @@ class P002UpdateGroupLabel implements DataPatchInterface
         );
 
         $this->moduleDataSetup->getConnection()->endSetup();
+    }
+
+    /**
+     * Revert the changes made by this patch
+     *
+     * @return void
+     */
+    public function revert(): void
+    {
+
     }
 
     public static function getDependencies(): array

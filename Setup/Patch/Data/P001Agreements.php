@@ -2,28 +2,29 @@
 
 namespace Radarsofthouse\BillwerkPlusSubscription\Setup\Patch\Data;
 
+use Magento\CheckoutAgreements\Model\AgreementFactory;
 use Magento\CheckoutAgreements\Model\ResourceModel\Agreement\CollectionFactory;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
-use Magento\CheckoutAgreements\Model\AgreementFactory;
+use Magento\Framework\Setup\Patch\PatchRevertableInterface;
 use Radarsofthouse\BillwerkPlusSubscription\Helper\Data as HelperData;
 
-class P001Agreements implements DataPatchInterface
+class P001Agreements implements DataPatchInterface, PatchRevertableInterface
 {
     /**
      * @var CollectionFactory
      */
-    private $agreementCollectionFactory;
+    private CollectionFactory $agreementCollectionFactory;
 
     /**
      * @var AgreementFactory
      */
-    private $agreementFactory;
+    private AgreementFactory $agreementFactory;
 
     /**
      * @var ModuleDataSetupInterface
      */
-    private $setup;
+    private ModuleDataSetupInterface $moduleDataSetup;
 
     /**
      * @param ModuleDataSetupInterface $setup
@@ -31,11 +32,11 @@ class P001Agreements implements DataPatchInterface
      * @param AgreementFactory $agreementFactory
      */
     public function __construct(
-        ModuleDataSetupInterface $setup,
+        ModuleDataSetupInterface $moduleDataSetup,
         CollectionFactory $agreementCollectionFactory,
         AgreementFactory $agreementFactory
     ) {
-        $this->setup = $setup;
+        $this->moduleDataSetup = $moduleDataSetup;
         $this->agreementCollectionFactory = $agreementCollectionFactory;
         $this->agreementFactory = $agreementFactory;
     }
@@ -45,7 +46,7 @@ class P001Agreements implements DataPatchInterface
      */
     public function apply()
     {
-        $this->setup->startSetup();
+        $this->moduleDataSetup->getConnection()->startSetup();
 
         $agreementCollection = $this->agreementCollectionFactory->create();
         $agreementCollection->addFieldToFilter('name', HelperData::TERMS_AND_CONDITIONS_NAME);
@@ -69,7 +70,25 @@ class P001Agreements implements DataPatchInterface
             $agreement->save();
         }
 
-        $this->setup->endSetup();
+        $this->moduleDataSetup->getConnection()->endSetup();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function revert()
+    {
+        $this->moduleDataSetup->getConnection()->startSetup();
+
+        $agreementCollection = $this->agreementCollectionFactory->create();
+        $agreementCollection->addFieldToFilter('name', HelperData::TERMS_AND_CONDITIONS_NAME);
+
+        foreach ($agreementCollection as $agreement) {
+            $agreement->delete();
+        }
+
+        $this->moduleDataSetup->getConnection()->endSetup();
+
     }
 
     /**

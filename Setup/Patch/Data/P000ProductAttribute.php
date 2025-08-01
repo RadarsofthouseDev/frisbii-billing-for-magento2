@@ -50,40 +50,7 @@ class P000ProductAttribute implements DataPatchInterface, PatchRevertableInterfa
         $this->moduleDataSetup->getConnection()->startSetup();
         /** @var EavSetup $eavSetup */
         $eavSetup = $this->eavSetupFactory->create(['setup' => $this->moduleDataSetup]);
-        //        $eavSetup->addAttribute(
-        //            \Magento\Catalog\Model\Product::ENTITY,
-        //            'billwerk_sub_plan',
-        //            [
-        //                'type' => 'int',
-        //                'label' => 'Subscription Plan',
-        //                'input' => 'select',
-        //                'source' => '',
-        //                'frontend' => '',
-        //                'required' => false,
-        //                'backend' => '',
-        //                'sort_order' => '30',
-        //                'global' => ScopedAttributeInterface::SCOPE_STORE,
-        //                'default' => null,
-        //                'visible' => true,
-        //                'user_defined' => true,
-        //                'searchable' => false,
-        //                'filterable' => false,
-        //                'comparable' => false,
-        //                'visible_on_front' => true,
-        //                'unique' => false,
-        //                'apply_to' => 'simple,virtual',
-        //                'group' => 'General',
-        //                'used_in_product_listing' => false,
-        //                'is_used_in_grid' => true,
-        //                'is_visible_in_grid' => false,
-        //                'is_filterable_in_grid' => false,
-        //                'option' => array('values' => array(""))
-        //            ]
-        //        );
-        /*if ($eavSetup->getAttributeId(\Magento\Catalog\Model\Product::ENTITY, 'billwerk_sub_plan')) {
-            $eavSetup->removeAttribute(\Magento\Catalog\Model\Product::ENTITY, 'billwerk_sub_plan');
-        }*/
-
+        // Add or update the 'billwerk_sub_plan' and 'billwerk_sub_enabled' attributes for products
         if ($eavSetup->getAttributeId(\Magento\Catalog\Model\Product::ENTITY, 'billwerk_sub_plan')) {
             $eavSetup->updateAttribute(
                 \Magento\Catalog\Model\Product::ENTITY,
@@ -126,6 +93,7 @@ class P000ProductAttribute implements DataPatchInterface, PatchRevertableInterfa
             );
         }
 
+        // Add or update the 'billwerk_sub_enabled' attribute for products
         if ($eavSetup->getAttributeId(\Magento\Catalog\Model\Product::ENTITY, 'billwerk_sub_enabled')) {
             $eavSetup->updateAttribute(
                 \Magento\Catalog\Model\Product::ENTITY,
@@ -184,6 +152,7 @@ class P000ProductAttribute implements DataPatchInterface, PatchRevertableInterfa
         /** @var EavSetup $eavSetup */
         $eavSetup = $this->eavSetupFactory->create(['setup' => $this->moduleDataSetup]);
         $eavSetup->removeAttribute(\Magento\Catalog\Model\Product::ENTITY, 'billwerk_sub_plan');
+        $eavSetup->removeAttribute(\Magento\Catalog\Model\Product::ENTITY, 'billwerk_sub_enabled');
 
         $this->moduleDataSetup->getConnection()->endSetup();
     }
