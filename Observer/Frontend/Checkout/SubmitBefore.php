@@ -131,8 +131,8 @@ class SubmitBefore implements \Magento\Framework\Event\ObserverInterface
             return;
         }
 
-        // Skip process below if "allow_to_create_customer" = NO
-        if (!$this->helper->getConfig('allow_to_create_customer', $storeId)) {
+        // Check if "allow_to_create_customer" = NO and customer is not logged in.
+        if (!$this->customerSession->isLoggedIn() && !$this->helper->getConfig('allow_to_create_customer', $storeId)) {
             $this->logger->addInfo(__METHOD__);
             $this->logger->addInfo("Checkout by guest and auto create customer function is disabled. Email: {$quote->getCustomerEmail()}");
             $this->messageManager->addErrorMessage(__("There is subscription product in your cart. Please login before placing the order."));
