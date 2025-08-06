@@ -133,4 +133,19 @@
     <type name="Magento\SalesRule\Model\Rule\Metadata\ValueProvider">
         <plugin name="Radarsofthouse_BillwerkPlusSubscription_Plugin_Magento_SalesRule_Model_Rule_Metadata_ValueProvider" type="Radarsofthouse\BillwerkPlusSubscription\Plugin\SalesRule\Model\Rule\Metadata\ValueProvider" sortOrder="10" disabled="false"/>
     </type>
+    <type name="Magento\CatalogInventory\Model\Stock\Item">
+        <plugin name="radarsofthouse_prevent_stock_reduction" type="Radarsofthouse\BillwerkPlusSubscription\Plugin\Magento\CatalogInventory\Model\Stock\Item" sortOrder="10"/>
+    </type>
+    <type name="Magento\Quote\Model\QuoteManagement">
+        <plugin name="radarsofthouse_quote_submit_no_stock_reduction" type="Radarsofthouse\BillwerkPlusSubscription\Plugin\Magento\Quote\Model\QuoteManagement" sortOrder="10"/>
+    </type>
+    <type name="Magento\CatalogInventory\Model\StockManagement">
+        <plugin name="radarsofthouse_stock_management_no_reduction" type="Radarsofthouse\BillwerkPlusSubscription\Plugin\Magento\CatalogInventory\Model\StockManagement" sortOrder="10"/>
+    </type>
+    <type name="Magento\InventorySourceDeductionApi\Model\SourceDeductionService">
+        <plugin name="radarsofthouse_prevent_source_deduction" type="Radarsofthouse\BillwerkPlusSubscription\Plugin\Magento\InventorySourceDeductionApi\Model\SourceDeductionService" sortOrder="10"/>
+    </type>
+    <type name="Magento\InventorySales\Model\PlaceReservationsForSalesEvent">
+        <plugin name="radarsofthouse_skip_reservation_place_order" type="Radarsofthouse\BillwerkPlusSubscription\Plugin\Magento\InventorySales\Model\PlaceReservationsForSalesEvent" sortOrder="10" disabled="false"/>
+    </type>
 </config>
