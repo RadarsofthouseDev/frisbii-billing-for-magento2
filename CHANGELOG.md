@@ -1,4 +1,9 @@
 # Changelog
+## Version 1.0.18 on 7 August 2025
+- Added Uninstall script to clean up EAV data on module removal.
+- Correct the logic for the "Enable creation of customer account during checkout" configuration.
+- Adjusted stock management to deduct stock only on renewal orders, not on initial subscription orders.
+
 ## Version 1.0.17 on 30 July 2025
 - Fixed an error on the Edit Product page.
 
