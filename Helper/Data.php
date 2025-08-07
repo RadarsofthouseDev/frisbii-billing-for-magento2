@@ -814,6 +814,29 @@ class Data extends AbstractHelper
     }
 
     /**
+     * Return true if the product is Frisbii subscription product by SKU
+     *
+     * @param string $sku
+     * @return bool
+     */
+    public function isBillwerkSubscriptionProductBySku($sku)
+    {
+        try {
+            $product = $this->productRepository->get($sku);
+            $subEnabledAttribute = $product->getCustomAttribute('billwerk_sub_enabled');
+            $subEnabled = null !== $subEnabledAttribute ? $subEnabledAttribute->getValue() : 0;
+            $subPlanAttribute = $product->getCustomAttribute('billwerk_sub_plan');
+            $subPlan = null !== $subPlanAttribute ? $subPlanAttribute->getValue() : '';
+            if ($subEnabled && !empty($subPlan)) {
+                return true;
+            }
+        } catch (NoSuchEntityException $e) {
+            return false;
+        }
+        return false;
+    }
+
+    /**
      * Prepare subscription data.
      *
      * @param  array $plan
