@@ -77,4 +77,16 @@
             </argument>
         </arguments>
     </virtualType>
+    <virtualType name="Magento\Catalog\Ui\DataProvider\Product\Form\Modifier\Pool">
+        <arguments>
+            <argument name="modifiers" xsi:type="array">
+                <item name="frisbii_settings_subscription" xsi:type="array">
+                    <item name="class" xsi:type="string">
+                        Radarsofthouse\BillwerkPlusSubscription\Ui\DataProvider\Product\Form\Modifier\FrisbiiSettings
+                    </item>
+                    <item name="sortOrder" xsi:type="number">11</item>
+                </item>
+            </argument>
+        </arguments>
+    </virtualType>
 </config>

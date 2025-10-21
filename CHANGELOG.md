@@ -1,4 +1,7 @@
 # Changelog
+## Version 1.0.19 on 21 October 2025
+- Added age verification feature.
+
 ## Version 1.0.18 on 7 August 2025
 - Added Uninstall script to clean up EAV data on module removal.
 - Correct the logic for the "Enable creation of customer account during checkout" configuration.

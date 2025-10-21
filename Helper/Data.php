@@ -977,4 +977,48 @@ class Data extends AbstractHelper
         }
         return $cacheData;
     }
+
+    /**
+     * Check if order requires age verification
+     *
+     * @param Order $order
+     * @return bool|int
+     */
+    public function getAgeVerification($order): bool|int
+    {
+        $storeId = $order->getStoreId();
+        $ageVerificationEnabled = $this->getConfig('age_verification_enabled', $storeId);
+        if ($ageVerificationEnabled) {
+            $ageVerificationNumber = 0;
+            foreach ($order->getAllItems() as $item) {
+                try {
+                    $product = $this->productRepository->getById($item->getProductId());
+                } catch (NoSuchEntityException $e) {
+                    continue;
+                }
+                $isEnabled = $product->getData('frisbii_age_verification_enabled');
+                if ($isEnabled) {
+                    $attribute = $product->getCustomAttribute('frisbii_minimum_user_age');
+                    if ($attribute && $attribute->getValue() > $ageVerificationNumber) {
+                        $ageVerificationNumber = (int)$attribute->getValue();
+                    }
+                } elseif ($item->getParentItem()) {
+                    try {
+                        $product = $this->productRepository->getById($item->getParentItem()->getProductId());
+                    } catch (NoSuchEntityException $e) {
+                        continue;
+                    }
+                    $isEnabled = $product->getData('frisbii_age_verification_enabled');
+                    if ($isEnabled) {
+                        $attribute = $product->getCustomAttribute('frisbii_minimum_user_age');
+                        if ($attribute && $attribute->getValue() > $ageVerificationNumber) {
+                            $ageVerificationNumber = (int)$attribute->getValue();
+                        }
+                    }
+                }
+            }
+            return $ageVerificationNumber > 0 ? $ageVerificationNumber : false;
+        }
+        return false;
+    }
 }

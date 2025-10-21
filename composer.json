@@ -2,7 +2,7 @@
     "name": "radarsofthouse/billwerk-plus-subscription",
     "description": "Frisbii Billing for Magento 2",
     "type": "magento2-module",
-    "version": "1.0.18",
+    "version": "1.0.19",
     "authors": [
         {
             "email": "support@radarsofthouse.dk",

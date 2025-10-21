@@ -8,6 +8,12 @@
                     <argument name="tab" xsi:type="string">billwerkplus_subscription</argument>
                 </arguments>
             </block>
+            <block class="Radarsofthouse\BillwerkPlusSubscription\Block\Adminhtml\Catalog\Product\Edit\Tab\FrisbiiSettings" name="frisbii_settings_subscription_tab">
+                <arguments>
+                    <argument name="label" xsi:type="string" translate="true">Frisbii Settings</argument>
+                    <argument name="tab" xsi:type="string">frisbii_settings</argument>
+                </arguments>
+            </block>
         </referenceBlock>
     </body>
 </page>

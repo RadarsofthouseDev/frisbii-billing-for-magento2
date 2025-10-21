@@ -320,6 +320,15 @@ class Payment extends AbstractHelper
             ]
         ];
 
+        $ageVerification = $this->helper->getAgeVerification($order);
+        if ($ageVerification !== false) {
+            $options['minimum_user_age'] = (int)$ageVerification;
+            $options['session_data'] = [
+                'mpo_minimum_user_age' => (int)$ageVerification,
+                'vipps_epayment_minimum_user_age' => (int)$ageVerification
+            ];
+        }
+
         if ($customerHandle !== false) {
             $res = $this->sessionHelper->chargeCreateWithExistCustomer(
                 $apiKey,
@@ -517,13 +526,15 @@ class Payment extends AbstractHelper
                     try {
                         $salesRule = $this->ruleRepository->getById($salesRuleId);
                         $salesRuleData = $salesRule->__toArray();
-                        if (array_key_exists('coupon_code', $salesRuleData)
+                        if (
+                            array_key_exists('coupon_code', $salesRuleData)
                             && null !== $salesRuleData['coupon_code']
                             && $couponCode === $salesRuleData['coupon_code']
                         ) {
                             continue;
                         }
-                        if (array_key_exists('billwerk_discount_handle', $salesRuleData)
+                        if (
+                            array_key_exists('billwerk_discount_handle', $salesRuleData)
                             && empty($salesRuleData['billwerk_discount_handle'])
                         ) {
                             continue;
@@ -602,6 +613,15 @@ class Payment extends AbstractHelper
 
         if ($this->helper->getConfig('api_key_type', $order->getStoreId()) == '0') {
             $subscriptionData['test'] = true;
+        }
+
+        $ageVerification = $this->helper->getAgeVerification($order);
+        if ($ageVerification !== false) {
+            $options['minimum_user_age'] = (int)$ageVerification;
+            $options['session_data'] = [
+                'mpo_minimum_user_age' => (int)$ageVerification,
+                'vipps_epayment_minimum_user_age' => (int)$ageVerification
+            ];
         }
 
         if ($customerHandle !== false) {

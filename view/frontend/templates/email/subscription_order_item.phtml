@@ -179,7 +179,7 @@ $productRepository = $objectManager->get(\Magento\Catalog\Api\ProductRepositoryI
     </table>
 
     <!-- Gift Message --->
-    <?php if ($block->helper(\Magento\GiftMessage\Helper\Message::class)
+    <?php if ($objectManager->get(\Magento\GiftMessage\Helper\Message::class)
             ->isMessagesAllowed('order', $_order, $_order->getStore())
         && $_order->getGiftMessageId()
     ): ?>

@@ -70,6 +70,10 @@
                     <label>Position on the List</label>
                     <comment>How far down on the list of payment methods should this one appear?</comment>
                 </field>
+                <field id="age_verification_enabled" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="84" translate="label" type="select">
+                    <label>Enable age verification</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
 <!--Mix Order-->
                 <field id="send_order_line" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="100" translate="label" type="select">
                     <label>Send order lines</label>
