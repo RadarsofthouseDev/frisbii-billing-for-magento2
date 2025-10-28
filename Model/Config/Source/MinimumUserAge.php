@@ -8,6 +8,17 @@ class MinimumUserAge extends \Magento\Eav\Model\Entity\Attribute\Source\Abstract
 {
 
     /**
+     * @var \Magento\Eav\Model\ResourceModel\Entity\Attribute\OptionFactory
+     */
+    protected $optionFactory;
+
+    public function __construct(
+        \Magento\Eav\Model\ResourceModel\Entity\Attribute\OptionFactory $optionFactory
+    ) {
+        $this->optionFactory = $optionFactory;
+    }
+
+    /**
      * getAllOptions
      *
      * @return array
@@ -61,6 +72,8 @@ class MinimumUserAge extends \Magento\Eav\Model\Entity\Attribute\Source\Abstract
      */
     public function getFlatUpdateSelect($store)
     {
-        return $this->eavAttrEntity->create()->getFlatUpdateSelect($this->getAttribute(), $store);
+        /** @var $option \Magento\Eav\Model\ResourceModel\Entity\Attribute\Option */
+        $option = $this->optionFactory->create();
+        return $option->getFlatUpdateSelect($this->getAttribute(), $store, false);
     }
 }
