@@ -48,9 +48,15 @@ use Radarsofthouse\BillwerkPlusSubscription\Helper\Invoice as InvoiceHelper;
 use Radarsofthouse\BillwerkPlusSubscription\Helper\Logger;
 use Radarsofthouse\BillwerkPlusSubscription\Helper\Subscription;
 use Radarsofthouse\BillwerkPlusSubscription\Model\StatusFactory;
+use Radarsofthouse\BillwerkPlusSubscription\Model\ResourceModel\Webhook as WebhookResource;
 
 class Index extends Action
 {
+    public const MAX_WEBHOOK_AGE = 259200;
+    public const MAX_WEBHOOK_CLOCK_SKEW = 300;
+    private const RENEWAL_ORDER_LOOKUP_ATTEMPTS = 5;
+    private const RENEWAL_ORDER_LOOKUP_DELAY_SECONDS = 1;
+
     /**
      * @var PageFactory
      */
@@ -202,6 +208,16 @@ class Index extends Action
     protected $storeManager;
 
     /**
+     * @var WebhookResource
+     */
+    protected $webhookResource;
+
+    /**
+     * @var array
+     */
+    protected $webhookSecretResolution = [];
+
+    /**
      * @param Context $context
      * @param PageFactory $resultPageFactory
      * @param JsonFactory $resultJsonFactory
@@ -235,6 +251,7 @@ class Index extends Action
      * @param CustomerRepositoryInterface $customerRepository
      * @param QuoteFactory $quoteFactory
      * @param StoreManagerInterface $storeManager
+     * @param WebhookResource $webhookResource
      * @throws LocalizedException
      */
     public function __construct(
@@ -270,7 +287,8 @@ class Index extends Action
         CartManagementInterface $cartManagement,
         CustomerRepositoryInterface $customerRepository,
         QuoteFactory $quoteFactory,
-        StoreManagerInterface $storeManager
+        StoreManagerInterface $storeManager,
+        WebhookResource $webhookResource
     ) {
         $this->resultPageFactory = $resultPageFactory;
         $this->logger = $logger;
@@ -304,6 +322,7 @@ class Index extends Action
         $this->customerRepository = $customerRepository;
         $this->quoteFactory = $quoteFactory;
         $this->storeManager = $storeManager;
+        $this->webhookResource = $webhookResource;
         $this->context = $context;
         parent::__construct($context);
 
@@ -326,10 +345,53 @@ class Index extends Action
      */
     public function execute()
     {
+        if (!$this->getRequest()->isPost()) {
+            return $this->createWebhookResponse(405, 'Webhook endpoint accepts POST requests only.');
+        }
+
         $request = $this->getRequest()->getContent();
         $receiveData = json_decode($request, true);
 
-        $this->logger->addDebug(__METHOD__, $receiveData);
+        if (!is_array($receiveData)) {
+            return $this->createWebhookResponse(400, 'Invalid webhook request.');
+        }
+
+        $validation = $this->validateWebhook($receiveData);
+        if (!$validation['valid']) {
+            return $this->createWebhookResponse($validation['status'], $validation['message']);
+        }
+
+        try {
+            $claimStatus = $this->webhookResource->claim(
+                $validation['webhook_id'],
+                $validation['event_id'],
+                $validation['event_type']
+            );
+        } catch (Exception $e) {
+            $this->logger->addError('Unable to record webhook idempotency state.', [
+                'webhook_id' => $validation['webhook_id'],
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->createWebhookResponse(503, 'Webhook is temporarily unavailable.');
+        }
+
+        if ($claimStatus === WebhookResource::CLAIM_PROCESSED) {
+            return $this->createWebhookResponse(200, 'Webhook has already been processed.');
+        }
+
+        if ($claimStatus !== WebhookResource::CLAIM_NEW) {
+            return $this->createWebhookResponse(503, 'Webhook is already being processed.');
+        }
+
+        $this->logger->addDebug(__METHOD__, [
+            'webhook_id' => $validation['webhook_id'],
+            'event_id' => $validation['event_id'],
+            'event_type' => $validation['event_type'],
+            'invoice' => isset($receiveData['invoice']) && is_scalar($receiveData['invoice'])
+                ? (string)$receiveData['invoice']
+                : null,
+        ]);
 
         try {
             if (!array_key_exists('event_type', $receiveData)) {
@@ -417,6 +479,26 @@ class Index extends Action
                     $this->logger->addDebug('default', $log);
                     break;
             }
+
+            if ((int)$response['status'] >= 200 && (int)$response['status'] < 300) {
+                try {
+                    if (!$this->webhookResource->markProcessed($validation['webhook_id'])) {
+                        $this->releaseWebhook($validation['webhook_id']);
+                        return $this->createWebhookResponse(503, 'Webhook state could not be recorded.');
+                    }
+                } catch (Exception $e) {
+                    $this->releaseWebhook($validation['webhook_id']);
+                    $this->logger->addError('Unable to mark webhook as processed.', [
+                        'webhook_id' => $validation['webhook_id'],
+                        'error' => $e->getMessage(),
+                    ]);
+
+                    return $this->createWebhookResponse(503, 'Webhook state could not be recorded.');
+                }
+            } else {
+                $this->releaseWebhook($validation['webhook_id']);
+            }
+
             $response['message'] = 'Magento : ' . $response['message'];
             $result = $this->resultJsonFactory->create();
             $result->setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0', true);
@@ -425,6 +507,7 @@ class Index extends Action
 
             return $result;
         } catch (LocalizedException | Exception $e) {
+            $this->releaseWebhook($validation['webhook_id']);
             $log['response_error'] = [
                 'error_code' => $e->getCode(),
                 'message' => $e->getMessage(),
@@ -432,6 +515,197 @@ class Index extends Action
             ];
             $this->logger->addError(__METHOD__, $log);
             throw new Exception($e->getMessage(), (!empty($e->getCode()) ? (int)$e->getCode() : 500));
+        }
+    }
+
+    /**
+     * Validate the provider webhook signature and timestamp.
+     *
+     * @param array $data
+     * @return array
+     */
+    private function validateWebhook(array $data)
+    {
+        $webhookId = isset($data['id']) && is_scalar($data['id']) ? (string)$data['id'] : '';
+        $eventId = isset($data['event_id']) && is_scalar($data['event_id']) ? (string)$data['event_id'] : '';
+        $eventType = isset($data['event_type']) && is_scalar($data['event_type'])
+            ? (string)$data['event_type']
+            : '';
+        $timestamp = isset($data['timestamp']) && is_scalar($data['timestamp'])
+            ? (string)$data['timestamp']
+            : '';
+        $signature = isset($data['signature']) && is_scalar($data['signature'])
+            ? (string)$data['signature']
+            : '';
+
+        if (
+            trim($webhookId) === ''
+            || trim($eventId) === ''
+            || trim($eventType) === ''
+            || trim($timestamp) === ''
+            || !preg_match('/\A[a-f0-9]{64}\z/i', trim($signature))
+        ) {
+            $this->logger->addError('Rejected webhook with missing or malformed authentication fields.', [
+                'webhook_id_present' => trim($webhookId) !== '',
+                'event_id_present' => trim($eventId) !== '',
+                'event_type_present' => trim($eventType) !== '',
+                'timestamp_present' => trim($timestamp) !== '',
+                'signature_length' => strlen($signature),
+            ]);
+
+            return [
+                'valid' => false,
+                'status' => 401,
+                'message' => 'Invalid webhook request.',
+            ];
+        }
+
+        try {
+            $timestampValue = (new \DateTimeImmutable($timestamp))->getTimestamp();
+        } catch (\Exception $exception) {
+            $this->logger->addError('Rejected webhook with invalid timestamp format.', [
+                'webhook_id' => $webhookId,
+                'timestamp' => $timestamp,
+            ]);
+
+            return [
+                'valid' => false,
+                'status' => 401,
+                'message' => 'Invalid webhook request.',
+            ];
+        }
+
+        $now = time();
+        if (
+            $timestampValue > $now + self::MAX_WEBHOOK_CLOCK_SKEW
+            || $timestampValue < $now - self::MAX_WEBHOOK_AGE - self::MAX_WEBHOOK_CLOCK_SKEW
+        ) {
+            $this->logger->addError('Rejected stale or future webhook.', [
+                'webhook_id' => $webhookId,
+                'timestamp' => $timestamp,
+                'timestamp_epoch' => $timestampValue,
+                'server_time_epoch' => $now,
+                'age_seconds' => $now - $timestampValue,
+                'max_age_seconds' => self::MAX_WEBHOOK_AGE,
+                'clock_skew_seconds' => self::MAX_WEBHOOK_CLOCK_SKEW,
+            ]);
+
+            return [
+                'valid' => false,
+                'status' => 401,
+                'message' => 'Invalid webhook request.',
+            ];
+        }
+
+        $secret = $this->getWebhookSecretForPayload($data);
+        if ($secret === '') {
+            $this->logger->addError(
+                'Webhook secret is not configured.',
+                array_merge(['webhook_id' => $webhookId, 'event_type' => $eventType], $this->webhookSecretResolution)
+            );
+
+            return [
+                'valid' => false,
+                'status' => 503,
+                'message' => 'Webhook authentication is not configured.',
+            ];
+        }
+
+        $expectedSignature = hash_hmac('sha256', $timestamp . $webhookId, $secret);
+        if (!hash_equals($expectedSignature, strtolower(trim($signature)))) {
+            $this->logger->addError(
+                'Rejected webhook with invalid signature.',
+                array_merge(['webhook_id' => $webhookId, 'event_type' => $eventType], $this->webhookSecretResolution)
+            );
+
+            return [
+                'valid' => false,
+                'status' => 401,
+                'message' => 'Invalid webhook request.',
+            ];
+        }
+
+        return [
+            'valid' => true,
+            'webhook_id' => $webhookId,
+            'event_id' => $eventId,
+            'event_type' => $eventType,
+        ];
+    }
+
+    /**
+     * Resolve the secret for the order store when an invoice is present.
+     *
+     * @param array $data
+     * @return string
+     */
+    private function getWebhookSecretForPayload(array $data)
+    {
+        $storeId = null;
+        $invoice = isset($data['invoice']) && is_scalar($data['invoice'])
+            ? (string)$data['invoice']
+            : '';
+        $orderFound = false;
+
+        if ($invoice !== '') {
+            $order = $this->orderInterface->loadByIncrementId($invoice);
+            if ($order->getId()) {
+                $orderFound = true;
+                $storeId = $order->getStoreId();
+            }
+        }
+
+        $apiKeyType = $this->helper->getConfig('api_key_type', $storeId);
+        $secretField = (int)$apiKeyType === 1 ? 'webhook_secret' : 'webhook_secret_test';
+        $secret = $this->helper->getWebhookSecret($storeId);
+        $this->webhookSecretResolution = [
+            'invoice' => $invoice !== '' ? $invoice : null,
+            'order_found' => $orderFound,
+            'store_id' => $storeId,
+            'scope' => $storeId === null ? 'current_store_fallback' : 'order_store',
+            'api_key_type' => (string)$apiKeyType,
+            'secret_field' => $secretField,
+            'secret_configured' => $secret !== '',
+        ];
+
+        return $secret;
+    }
+
+    /**
+     * Create a JSON response for webhook authentication and idempotency failures.
+     *
+     * @param int $status
+     * @param string $message
+     * @return \Magento\Framework\Controller\ResultInterface
+     */
+    private function createWebhookResponse($status, $message)
+    {
+        $result = $this->resultJsonFactory->create();
+        $result->setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0', true);
+        $result->setHttpResponseCode((int)$status);
+        $result->setData([
+            'status' => (int)$status,
+            'message' => $message,
+        ]);
+
+        return $result;
+    }
+
+    /**
+     * Release a failed webhook claim for provider retry.
+     *
+     * @param string $webhookId
+     * @return void
+     */
+    private function releaseWebhook($webhookId)
+    {
+        try {
+            $this->webhookResource->release($webhookId);
+        } catch (Exception $exception) {
+            $this->logger->addError('Unable to release webhook processing state.', [
+                'webhook_id' => $webhookId,
+                'error' => $exception->getMessage(),
+            ]);
         }
     }
 
@@ -509,9 +783,11 @@ class Index extends Action
                     $_createInvoice = true;
                 }
 
-                if (!$_createInvoice && $this->helper->getConfig('auto_create_invoice', $order->getStoreId())
+                if (
+                    !$_createInvoice && $this->helper->getConfig('auto_create_invoice', $order->getStoreId())
                 ) {
-                    if (isset($chargeRes['state']) && $chargeRes['state'] == "settled"
+                    if (
+                        isset($chargeRes['state']) && $chargeRes['state'] == "settled"
                         && $chargeRes['amount'] == ($order->getGrandTotal() * 100)
                     ) {
                         $_invoiceType = 'settled_in_frisbii';
@@ -681,7 +957,8 @@ class Index extends Action
                 }
 
                 $creditMemoIncrementId = null;
-                if ($order->canCreditmemo() && $order->getBillwerkOrderType() === 'Renewal'
+                if (
+                    $order->canCreditmemo() && $order->getBillwerkOrderType() === 'Renewal'
                     && $order->getInvoiceCollection()->getTotalCount()
                 ) {
                     $refundAmount = (float)$this->helper->convertAmount($refundData['amount']);
@@ -995,7 +1272,8 @@ class Index extends Action
                 $productIds[$item->getProductId()] = $item->getQtyOrdered();
                 $productOptions[$item->getProductId()] = null;
                 $options = $item->getProductOptions();
-                if (isset($options['info_buyRequest']['options']) &&
+                if (
+                    isset($options['info_buyRequest']['options']) &&
                     is_array($options['info_buyRequest']['options'])
                 ) {
                     $productOptions[$item->getProductId()] = $options['info_buyRequest']['options'];
@@ -1017,7 +1295,8 @@ class Index extends Action
 
             foreach ($productIds as $id => $qty) {
                 $product = $this->productRepository->getById($id);
-                if ($product->getBillwerkSubEnabled() && $product->getBillwerkSubPlan()
+                if (
+                    $product->getBillwerkSubEnabled() && $product->getBillwerkSubPlan()
                     && !empty($product->getBillwerkSubPlan())
                 ) {
                     $options = $productOptions[$id];
@@ -1036,7 +1315,8 @@ class Index extends Action
             $customPrice = $invoice['amount'] / 100;
             foreach ($productIds as $id => $qty) {
                 $product = $this->productRepository->getById($id);
-                if ($product->getBillwerkSubEnabled() && $product->getBillwerkSubPlan()
+                if (
+                    $product->getBillwerkSubEnabled() && $product->getBillwerkSubPlan()
                     && !empty($product->getBillwerkSubPlan())
                 ) {
                     $productItem = $quote->getItemByProduct($product);
@@ -1053,8 +1333,15 @@ class Index extends Action
             $this->logger->addDebug(__METHOD__, [$baseQuote->getShippingAddress()->getCountryId()]);
             $this->logger->addDebug(__METHOD__, [$baseQuote->getBillingAddress()->getCountryId()]);
 
-            $quote->setBillingAddress($baseQuote->getBillingAddress());
-            $quote->setShippingAddress($baseQuote->getShippingAddress());
+            $billingAddressData = $baseQuote->getBillingAddress()->getData();
+            unset($billingAddressData['address_id'], $billingAddressData['quote_id']);
+            $quote->getBillingAddress()->addData($billingAddressData);
+            $quote->getBillingAddress()->setQuoteId($quote->getId());
+
+            $shippingAddressData = $baseQuote->getShippingAddress()->getData();
+            unset($shippingAddressData['address_id'], $shippingAddressData['quote_id']);
+            $quote->getShippingAddress()->addData($shippingAddressData);
+            $quote->getShippingAddress()->setQuoteId($quote->getId());
 
             $this->logger->addDebug('Shipping:' . $baseQuote->getShippingAddress()->getShippingMethod());
             $this->logger->addDebug(__METHOD__, [$quote->getShippingAddress()->getCountryId()]);
@@ -1102,11 +1389,10 @@ class Index extends Action
      * Capture the invoice for renewal order from Frisbii
      *
      * @param array $data
-     * @param int $try
      * @return array
      * @throws LocalizedException
      */
-    protected function subscriptionInvoiceSettled($data, int $try = 0)
+    protected function subscriptionInvoiceSettled($data)
     {
         $baseOrderId = $this->getBaseOrderId($data['subscription']);
 
@@ -1129,18 +1415,24 @@ class Index extends Action
             ];
         }
 
-        $collectionRenewal = $this->orderCollectionFactory->create();
-        $collectionRenewal->addAttributeToFilter('billwerk_order_type', 'Renewal')
-            ->addAttributeToFilter('billwerk_sub_handle', $data['subscription'])
-            ->addAttributeToFilter('billwerk_sub_inv_handle', $data['invoice'])->load();
+        $collectionRenewal = null;
+        for ($attempt = 0; $attempt < self::RENEWAL_ORDER_LOOKUP_ATTEMPTS; $attempt++) {
+            $collectionRenewal = $this->orderCollectionFactory->create();
+            $collectionRenewal->addAttributeToFilter('billwerk_order_type', 'Renewal')
+                ->addAttributeToFilter('billwerk_sub_handle', $data['subscription'])
+                ->addAttributeToFilter('billwerk_sub_inv_handle', $data['invoice'])->load();
 
-        if (!$collectionRenewal->getTotalCount()) {
-            if ($try <= 10) {
-                // phpcs:ignore Magento2.Functions.DiscouragedFunction
-                sleep(1);
-                $try++;
-                $this->subscriptionInvoiceSettled($data, $try);
+            if ($collectionRenewal->getTotalCount()) {
+                break;
             }
+
+            if ($attempt < self::RENEWAL_ORDER_LOOKUP_ATTEMPTS - 1) {
+                // phpcs:ignore Magento2.Functions.DiscouragedFunction
+                sleep(self::RENEWAL_ORDER_LOOKUP_DELAY_SECONDS);
+            }
+        }
+
+        if (!$collectionRenewal || !$collectionRenewal->getTotalCount()) {
             return [
                 'status' => 500,
                 'message' => 'not found order.',
@@ -1151,7 +1443,7 @@ class Index extends Action
         $order = $this->orderRepository->get($orderId);
         $storeId = $order->getStoreId();
         $autoInvoice = $this->helper->getConfig('auto_create_invoice_after_renewal', $storeId);
-        $autoShipment = $this->helper->getConfig('auto_create_invoice_after_renewal', $storeId);
+        $autoShipment = $this->helper->getConfig('auto_create_shipment_after_renewal', $storeId);
 
         if ($order->canInvoice() && $autoInvoice) {
             try {
@@ -1322,6 +1614,10 @@ class Index extends Action
             try {
                 $this->customerSubscriptionRepository->save($customerSubscription);
                 $this->updateCustomerSubscriber($customerHandle);
+                return [
+                    'status' => 200,
+                    'message' => 'update status already',
+                ];
             } catch (LocalizedException $e) {
                 return [
                     'status' => 500,

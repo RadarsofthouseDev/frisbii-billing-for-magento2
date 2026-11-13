@@ -1,8 +1,10 @@
 <?php
+
 /**
  * Copyright © radarsofthouse.dk All rights reserved.
  * See COPYING.txt for license details.
  */
+
 declare(strict_types=1);
 
 namespace Radarsofthouse\BillwerkPlusSubscription\Controller\Adminhtml\System\Config;
@@ -91,33 +93,69 @@ class Webhook extends Action
     {
         $result = $this->resultJsonFactory->create();
         $lastUpdateTime = $this->timezone->formatDate(null, IntlDateFormatter::MEDIUM, true);
-        $urls = null;
-        $urlsTest = null;
         try {
-            $storeId = $this->storeManager->getStore()->getId();
-            $apiKey = $this->helper->getConfig('private_key', $storeId);
-            $apiKeyTest = $this->helper->getConfig('private_key_test', $storeId);
-            $this->logger->addDebug('api key.', ['api_key'=>$apiKey, 'api_key_test'=>$apiKeyTest]);
-            if (!empty($apiKey)) {
-                $urls = $this->webhookHelper->updateUrl($apiKey);
+            $apiKeys = [];
+            $seenApiKeys = [];
+            foreach ($this->storeManager->getStores() as $store) {
+                $storeId = $store->getId();
+                foreach (['private_key', 'private_key_test'] as $keyType) {
+                    $apiKey = $this->helper->getConfiguredApiKey($keyType, $storeId);
+                    $fingerprint = $apiKey !== '' ? hash('sha256', $apiKey) : '';
+                    if ($fingerprint !== '' && !isset($seenApiKeys[$fingerprint])) {
+                        $seenApiKeys[$fingerprint] = true;
+                        $apiKeys[] = [
+                            'store_id' => $storeId,
+                            'key_type' => $keyType,
+                            'api_key' => $apiKey,
+                        ];
+                    }
+                }
             }
-            if (!empty($apiKeyTest)) {
-                $urlsTest = $this->webhookHelper->updateUrl($apiKeyTest);
+
+            $success = [];
+            $failed = [];
+            foreach ($apiKeys as $apiKeyData) {
+                $updatedUrls = $this->webhookHelper->updateUrl($apiKeyData['api_key']);
+                $reference = [
+                    'store_id' => $apiKeyData['store_id'],
+                    'key_type' => $apiKeyData['key_type'],
+                ];
+                if ($updatedUrls === false) {
+                    $failed[] = array_merge($reference, [
+                        'error' => $this->webhookHelper->getLastError(),
+                    ]);
+                } else {
+                    $success[] = array_merge($reference, ['urls' => $updatedUrls]);
+                }
             }
-            $this->logger->addDebug('webhook update result', ['urls'=>$urls, 'urls_test'=>$urlsTest]);
-            if (($urls !== false && $urls !== null) || ($urlsTest !== false && $urlsTest !== null)) {
+
+            if (!empty($failed)) {
+                $this->logger->addError('Failed to update webhook URLs.', ['failed_keys' => $failed], true);
                 return $result->setData([
-                    'success' => true,
-                    'urls' => $urls,
-                    'urls_test' => $urlsTest,
-                    'time' => $lastUpdateTime
+                    'success' => false,
+                    'message' => 'Unable to update webhook URLs for one or more API keys.',
+                    'updated_urls' => $success,
+                    'failed_keys' => $failed,
+                    'time' => $lastUpdateTime,
                 ]);
             }
 
+            $this->logger->addInfo('Updated webhook URLs.', ['updated_urls' => $success]);
+            if (!empty($success)) {
+                return $result->setData([
+                    'success' => true,
+                    'updated_urls' => $success,
+                    'time' => $lastUpdateTime
+                ]);
+            }
         } catch (\Throwable $e) {
             $this->logger->addError($e->getMessage());
         }
-        return $result->setData(['success' => false, 'time' => $lastUpdateTime]);
+        return $result->setData([
+            'success' => false,
+            'message' => 'No configured API keys were found.',
+            'time' => $lastUpdateTime,
+        ]);
     }
 
     /**

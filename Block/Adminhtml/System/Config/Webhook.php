@@ -1,8 +1,10 @@
 <?php
+
 /**
  * Copyright © radarsofthouse.dk All rights reserved.
  * See COPYING.txt for license details.
  */
+
 declare(strict_types=1);
 
 namespace Radarsofthouse\BillwerkPlusSubscription\Block\Adminhtml\System\Config;
@@ -64,7 +66,7 @@ class Webhook extends Field
         )->setData(
             [
                 'id' => 'subscription_webhook_button',
-                'label' => __('Update Webhook'),
+                'label' => __('Update Webhook URLs'),
             ]
         );
 

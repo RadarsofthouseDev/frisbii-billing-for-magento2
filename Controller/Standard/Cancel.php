@@ -25,6 +25,7 @@ use Radarsofthouse\BillwerkPlusSubscription\Api\Data\SessionInterfaceFactory;
 use Radarsofthouse\BillwerkPlusSubscription\Helper\Data;
 use Radarsofthouse\BillwerkPlusSubscription\Helper\Logger;
 use Radarsofthouse\BillwerkPlusSubscription\Helper\Session;
+use Radarsofthouse\BillwerkPlusSubscription\Helper\Subscription;
 
 class Cancel extends Action
 {
@@ -89,6 +90,11 @@ class Cancel extends Action
     protected $sessionInterfaceFactory;
 
     /**
+     * @var Subscription
+     */
+    protected $subscriptionHelper;
+
+    /**
      * @param Context $context
      * @param PageFactory $resultPageFactory
      * @param Http $request
@@ -101,6 +107,7 @@ class Cancel extends Action
      * @param Logger $logger
      * @param TransactionSearchResultInterfaceFactory $transactionSearchResultInterfaceFactory
      * @param SessionInterfaceFactory $sessionInterfaceFactory
+     * @param Subscription $subscriptionHelper
      */
     public function __construct(
         Context                                 $context,
@@ -114,7 +121,8 @@ class Cancel extends Action
         JsonFactory                             $resultJsonFactory,
         Logger                                  $logger,
         TransactionSearchResultInterfaceFactory $transactionSearchResultInterfaceFactory,
-        SessionInterfaceFactory                 $sessionInterfaceFactory
+        SessionInterfaceFactory                 $sessionInterfaceFactory,
+        Subscription                            $subscriptionHelper
     ) {
         $this->resultPageFactory = $resultPageFactory;
         $this->request = $request;
@@ -128,6 +136,7 @@ class Cancel extends Action
         $this->logger = $logger;
         $this->transactionSearchResultInterfaceFactory = $transactionSearchResultInterfaceFactory;
         $this->sessionInterfaceFactory = $sessionInterfaceFactory;
+        $this->subscriptionHelper = $subscriptionHelper;
 
         parent::__construct($context);
     }
@@ -152,17 +161,34 @@ class Cancel extends Action
             return $this->redirect('checkout/cart');
         }
 
-        $id = $params['id'] ?? '';
-
-        /** @var \Radarsofthouse\BillwerkPlusSubscription\Model\Session $session */
-        $session = $this->sessionInterfaceFactory->create()->load($id, 'handle');
-        $orderId = $session->getOrderId();
-
         $isAjax = 0;
         if (isset($params['_isAjax'])) {
             $isAjax = 1;
         }
+
+        $id = is_scalar($params['id']) ? trim((string)$params['id']) : '';
+        $invoice = is_scalar($params['invoice']) ? trim((string)$params['invoice']) : '';
+        $subscriptionHandle = isset($params['subscription']) && is_scalar($params['subscription'])
+            ? trim((string)$params['subscription'])
+            : '';
+        if ($id === '' || $invoice === '') {
+            return $this->rejectCallback($isAjax);
+        }
+
+        /** @var \Radarsofthouse\BillwerkPlusSubscription\Model\Session $session */
+        $session = $this->sessionInterfaceFactory->create()->load($id, 'handle');
+        $orderId = $session->getOrderId();
+        if (empty($orderId)) {
+            $this->logger->addError('Rejected cancel callback with unknown payment session.');
+            return $this->rejectCallback($isAjax);
+        }
+
         $order = $this->orderInterface->load($orderId);
+        if (!$order->getId() || !$this->isCallbackBoundToOrder($session, $order, $invoice, $subscriptionHandle)) {
+            $this->logger->addError('Rejected unbound payment cancel callback.');
+            return $this->rejectCallback($isAjax);
+        }
+
         $cancelConfig = $this->helper->getConfig('cancel_order_after_payment_cancel', $order->getStoreId());
 
         $this->logger->addDebug(__METHOD__, [$cancelConfig, $order->canCancel()]);
@@ -170,8 +196,13 @@ class Cancel extends Action
 
             $transactions = $this->transactionSearchResultInterfaceFactory->create()->addOrderIdFilter($order->getId());
 
+            // a subscription order has no Magento transaction after the first payment, but Accept
+            // stores the subscription handle on the order once the payment is confirmed
+            $isSubscriptionConfirmed = (string)$session->getOrderType() === 'subscription_order'
+                && !empty($order->getBillwerkSubHandle());
+
             // don't allow the cancellation if already have transactions (payment is paid)
-            if (count($transactions->getItems()) == 0) {
+            if (count($transactions->getItems()) == 0 && !$isSubscriptionConfirmed) {
                 $order->cancel();
                 $order->addStatusHistoryComment('Frisbii : order have been cancelled by payment page');
                 $order->save();
@@ -184,7 +215,9 @@ class Cancel extends Action
                     $apiKey,
                     $id
                 );
-                $this->checkoutSession->restoreQuote();
+                if ($this->checkoutSession->restoreQuote()) {
+                    $this->restoreSubscriptionItemPrices();
+                }
                 $this->checkoutSession->unsLastQuoteId()
                     ->unsLastSuccessQuoteId()
                     ->unsLastOrderId()
@@ -207,6 +240,101 @@ class Cancel extends Action
             return $this->redirect('/');
         }
         return $this->redirect('checkout/cart');
+    }
+
+    /**
+     * Restore the prices of the restored quote items.
+     *
+     * After place order the SubmitAllAfter observer zeroes the subscription items on the quote
+     * (the subscription is charged by Frisbii). When the quote is restored after a cancel the zero
+     * prices must be removed, otherwise the cart shows 0 and the next order has a wrong total.
+     *
+     * @return void
+     */
+    private function restoreSubscriptionItemPrices()
+    {
+        try {
+            $quote = $this->checkoutSession->getQuote();
+            if (!$quote || !$quote->getId()) {
+                return;
+            }
+            foreach ($quote->getAllItems() as $item) {
+                $customPrice = $item->getCustomPrice();
+                if ($customPrice !== null && (float)$customPrice == 0) {
+                    $item->setCustomPrice(null);
+                    $item->setOriginalCustomPrice(null);
+                    $item->setConvertedPrice(null);
+                }
+            }
+            $quote->setTotalsCollectedFlag(false);
+            $quote->collectTotals();
+            $quote->save();
+        } catch (\Throwable $e) {
+            $this->logger->addError('Failed to restore quote item prices: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Check that the callback parameters belong to the order stored with the session at place order.
+     *
+     * @param \Radarsofthouse\BillwerkPlusSubscription\Model\Session $session
+     * @param OrderInterface $order
+     * @param string $invoice
+     * @param string $subscriptionHandle
+     * @return bool
+     */
+    private function isCallbackBoundToOrder($session, $order, $invoice, $subscriptionHandle): bool
+    {
+        $sessionIncrementId = (string)$session->getOrderIncrementId();
+        if ($sessionIncrementId !== '' && $sessionIncrementId !== (string)$order->getIncrementId()) {
+            return false;
+        }
+
+        $orderType = (string)$session->getOrderType();
+        if ($orderType === 'mixed_order') {
+            // invoice is the order increment id (charge handle) for mixed orders
+            return $invoice === (string)$order->getIncrementId();
+        }
+
+        if ($orderType === 'subscription_order') {
+            // invoice is a provider invoice handle, so bind through the subscription metadata
+            if ($subscriptionHandle === '') {
+                return false;
+            }
+            try {
+                $apiKey = $this->helper->getApiKey($order->getStoreId());
+                $metadata = $this->subscriptionHelper->getMetadata($apiKey, $subscriptionHandle);
+            } catch (\Throwable $exception) {
+                return false;
+            }
+
+            return is_array($metadata)
+                && isset($metadata['magento']['orderId'])
+                && (string)$metadata['magento']['orderId'] === (string)$order->getId();
+        }
+
+        return false;
+    }
+
+    /**
+     * Reject a callback without cancelling anything.
+     *
+     * @param int $isAjax
+     * @return \Magento\Framework\Controller\ResultInterface
+     */
+    private function rejectCallback($isAjax)
+    {
+        if ($isAjax !== 1) {
+            return $this->redirect('checkout/cart');
+        }
+
+        return $this->resultJsonFactory->create()
+            ->setHttpResponseCode(400)
+            ->setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0', true)
+            ->setData([
+                'status' => 'error',
+                'message' => 'Invalid payment session.',
+            ]);
     }
 
     /**

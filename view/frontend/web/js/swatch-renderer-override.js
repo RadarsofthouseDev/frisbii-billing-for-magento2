@@ -25,7 +25,7 @@ define([
                 // Add frequency label after the price-wrapper span
                 if (frequency) {
                     $productPrice.find('.price-container').after(
-                        '<span class="subscription-frequency-label">' + frequency + '</span>'
+                        $('<span class="subscription-frequency-label"></span>').text(frequency)
                     );
                 }else if(frequency === '' && selectedProductId === undefined) {
                     $productPrice.find('.price-label').show();

@@ -72,7 +72,7 @@ class Api
         $this->client = new Client([
             'base_uri' => static::BASE_URI,
             RequestOptions::TIMEOUT => self::TIMEOUT,
-            RequestOptions::VERIFY => false,
+            RequestOptions::VERIFY => true,
         ]);
         $this->lastResponse = [
             'headers' => null,
@@ -277,11 +277,22 @@ class Api
                     $responseContent = $this->client->put($url, $options);
 
                     break;
+                case 'patch':
+                    $options[RequestOptions::JSON] = $args;
+                    $this->lastRequest['body'] = json_encode($args);
+                    $responseContent = $this->client->patch($url, $options);
+
+                    break;
+                default:
+                    throw new \InvalidArgumentException('Unsupported HTTP verb: ' . $verb);
             }
 
             $response = $this->requestSuccess($responseContent);
         } catch (RequestException $e) {
             $response = $this->requestError($e);
+        } catch (\Throwable $e) {
+            // connection errors, timeouts and any other failure that has no usable HTTP response
+            $response = $this->requestFailure($e);
         }
         return $this->formatResponse($response);
     }
@@ -313,8 +324,8 @@ class Api
     {
         $this->requestSuccessful = false;
         $this->lastRequest['headers'] = $this->getHeadersAsArray($e->getRequest());
-        if (in_array($e->getRequest()->getMethod(), ['POST', 'PUT'])) {
-            $this->lastRequest['body'] = $e->getRequest()->getBody();
+        if (in_array($e->getRequest()->getMethod(), ['POST', 'PUT', 'PATCH'])) {
+            $this->lastRequest['body'] = (string)$e->getRequest()->getBody();
         }
         if ($e->hasResponse()) {
             $this->lastResponse['headers'] = $this->getHeadersAsArray($e->getResponse());
@@ -328,17 +339,47 @@ class Api
             );
             if (!empty($this->lastResponse['body'])) {
                 $formattedBody = json_decode($this->lastResponse['body'], true);
-                if (array_key_exists('error', $formattedBody)) {
-                    $this->httpError = sprintf('%d: %s', $formattedBody['http_status'], $formattedBody['http_reason']);
+                // the body can be HTML (gateway error) or an incomplete JSON object
+                if (is_array($formattedBody) && array_key_exists('error', $formattedBody)) {
+                    if (isset($formattedBody['http_status'], $formattedBody['http_reason'])
+                        && is_scalar($formattedBody['http_status'])
+                        && is_scalar($formattedBody['http_reason'])
+                    ) {
+                        $this->httpError = sprintf(
+                            '%d: %s',
+                            $formattedBody['http_status'],
+                            $formattedBody['http_reason']
+                        );
+                    }
                     $this->errors = [
-                        'request_id' => $formattedBody['request_id'],
-                        'code' => array_key_exists('code', $formattedBody) ? $formattedBody['code'] : '',
-                        'error' => array_key_exists('error', $formattedBody) ? $formattedBody['error'] : '',
-                        'message' => array_key_exists('message', $formattedBody) ? $formattedBody['message'] : '',
+                        'request_id' => $formattedBody['request_id'] ?? '',
+                        'code' => $formattedBody['code'] ?? '',
+                        'error' => $formattedBody['error'] ?? '',
+                        'message' => $formattedBody['message'] ?? '',
                     ];
                 }
             }
         }
+
+        return $this->lastResponse;
+    }
+
+    /**
+     * Request failure without a usable HTTP response (connection error, timeout, ...)
+     *
+     * @param \Throwable $e
+     * @return array
+     */
+    private function requestFailure(\Throwable $e)
+    {
+        $this->requestSuccessful = false;
+        $this->httpError = 'Request failed: ' . get_class($e);
+        $this->errors = [
+            'request_id' => '',
+            'code' => '',
+            'error' => get_class($e),
+            'message' => $e->getMessage(),
+        ];
 
         return $this->lastResponse;
     }
@@ -400,7 +441,10 @@ class Api
     private function formatResponse(array $response)
     {
         if (!empty($response['body'])) {
-            return json_decode($response['body'], true);
+            $decoded = json_decode($response['body'], true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                return $decoded;
+            }
         }
 
         return false;

@@ -54,7 +54,12 @@ class RulesApplier
     ) {
 
         if ($this->registry->registry('billwerk_subscription_webhook_renewal_order')) {
-            $this->logger->addInfo(__METHOD__ . 'Remove all sale rule and coupon. ', ['itemId' => $item->getId(), 'couponCode' => $couponCode]);
+            if (!empty($rules) || !empty($couponCode)) {
+                $this->logger->addInfo(
+                    __METHOD__ . ' Remove all sale rule and coupon.',
+                    ['itemId' => $item->getId(), 'couponCode' => $couponCode]
+                );
+            }
             $rules = [];
             $couponCode = [];
         }

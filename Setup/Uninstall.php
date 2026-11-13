@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
@@ -69,6 +70,7 @@ class Uninstall implements UninstallInterface
             'radarsofthouse_billwerkplus_customer_subscriber',
             'radarsofthouse_billwerkplus_session',
             'radarsofthouse_billwerkplus_status',
+            'radarsofthouse_billwerkplus_webhook',
         ];
 
         foreach ($tablesToDrop as $tableName) {
@@ -126,7 +128,6 @@ class Uninstall implements UninstallInterface
         if ($setup->getConnection()->tableColumnExists($salesruleTable, 'billwerk_coupon_code')) {
             $setup->getConnection()->dropColumn($salesruleTable, 'billwerk_coupon_code');
         }
-
     }
 
     /**
@@ -177,6 +178,5 @@ class Uninstall implements UninstallInterface
         foreach ($attributeGroupCodes as $attributeGroupCode) {
             $setup->getConnection()->delete($tableName, ['attribute_group_code = ?' => $attributeGroupCode]);
         }
-
     }
 }

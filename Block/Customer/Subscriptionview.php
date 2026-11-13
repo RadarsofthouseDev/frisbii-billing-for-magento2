@@ -17,6 +17,7 @@ use Magento\Framework\View\Element\Template;
 use Magento\Framework\View\Element\Template\Context;
 use Radarsofthouse\BillwerkPlusSubscription\Api\CustomerSubscriberRepositoryInterface;
 use Radarsofthouse\BillwerkPlusSubscription\Helper\Data;
+use Radarsofthouse\BillwerkPlusSubscription\Helper\Logger;
 use Radarsofthouse\BillwerkPlusSubscription\Helper\PaymentMethod;
 use Radarsofthouse\BillwerkPlusSubscription\Helper\Plan;
 use Radarsofthouse\BillwerkPlusSubscription\Helper\Subscription;
@@ -71,6 +72,11 @@ class Subscriptionview extends Template
     protected $planHelper;
 
     /**
+     * @var Logger
+     */
+    protected $logger;
+
+    /**
      * @var array
      */
     private $subscription = [];
@@ -83,6 +89,7 @@ class Subscriptionview extends Template
      * @param TimezoneInterface $timezoneInterface
      * @param CustomerSubscriberRepositoryInterface $customerSubscriberRepository
      * @param Data $helper
+    * @param Logger $logger
      * @param Subscription $subscriptionHelper
      * @param PaymentMethod $paymentMethodHelper
      * @param Plan $planHelper
@@ -96,6 +103,7 @@ class Subscriptionview extends Template
         TimezoneInterface $timezoneInterface,
         CustomerSubscriberRepositoryInterface $customerSubscriberRepository,
         Data $helper,
+        Logger $logger,
         Subscription $subscriptionHelper,
         PaymentMethod $paymentMethodHelper,
         Plan $planHelper,
@@ -108,6 +116,7 @@ class Subscriptionview extends Template
         $this->timezoneInterface = $timezoneInterface;
         $this->customerSubscriberRepository =  $customerSubscriberRepository;
         $this->helper =  $helper;
+        $this->logger = $logger;
         $this->subscriptionHelper =  $subscriptionHelper;
         $this->paymentMethodHelper =  $paymentMethodHelper;
         $this->planHelper =  $planHelper;
@@ -152,7 +161,9 @@ class Subscriptionview extends Template
         $handle = $this->request->getParam('handle');
         $apiKey = $this->helper->getApiKey();
         $subscription = $this->subscriptionHelper->get($apiKey, $handle);
-        if ($subscription['customer'] === $this->getCustomerHandle()) {
+        if (is_array($subscription) && isset($subscription['customer'])
+            && $subscription['customer'] === $this->getCustomerHandle()
+        ) {
             return $subscription;
         }
         return [];
@@ -242,7 +253,7 @@ class Subscriptionview extends Template
                         $addons[] = $addon;
                     }
                 } catch (\GuzzleHttp\Exception\GuzzleException $e) {
-                    $this->_logger->error($e->getMessage());
+                    $this->logger->addError($e->getMessage());
                 }
             }
         }

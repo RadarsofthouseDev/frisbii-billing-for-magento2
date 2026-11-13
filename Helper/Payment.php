@@ -239,7 +239,7 @@ class Payment extends AbstractHelper
                     $customerHandle = null;
                 }
             } catch (LocalizedException | GuzzleException $e) {
-                $this->_logger->info($e->getMessage());
+                $this->logger->addInfo($e->getMessage());
             }
         }
         if (!$customerHandle) {

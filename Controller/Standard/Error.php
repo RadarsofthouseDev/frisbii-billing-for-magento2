@@ -116,16 +116,21 @@ class Error extends Action
      */
     public function execute()
     {
-        $params = $this->request->getParams('');
-        $orderId = $params['invoice'];
-        $id = $params['id'];
-        $_isAjax = 0;
-        if (isset($params['_isAjax'])) {
-            $_isAjax = 1;
+        $params = $this->request->getParams();
+        $isAjax = isset($params['_isAjax']);
+
+        // this endpoint does not change any state, so every request ends at the cart
+        if ($isAjax) {
+            return $this->resultJsonFactory->create()
+                ->setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0', true)
+                ->setData([
+                    'status' => 'error',
+                    'redirect_url' => $this->url->getUrl('checkout/cart'),
+                ]);
         }
 
-        if (empty($params['invoice']) || empty($params['id'])) {
-            return;
-        }
+        return $this->resultRedirectFactory->create()
+            ->setPath('checkout/cart')
+            ->setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0', true);
     }
 }

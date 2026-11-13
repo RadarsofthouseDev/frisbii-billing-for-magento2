@@ -69,7 +69,8 @@ class PriceBox
                 // If we found a valid subscription plan, append it to the price box
                 if ($lowestPricePlanLabel && $lowestPriceWithLabel === $absoluteLowestPrice) {
                     return $result . '<span class="subscription-frequency-label-lower-price">'
-                        . $lowestPricePlanLabel . '</span>';
+                        . htmlspecialchars((string)$lowestPricePlanLabel, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
+                        . '</span>';
                 }
 
                 // If no valid label, just return the result (price only)
@@ -82,7 +83,9 @@ class PriceBox
         if ($product instanceof Product) {
             $planLabel = $this->helper->getLabel($product);
             if ($planLabel) {
-                return $result . '<span class="subscription-frequency-label">' . $planLabel . '</span>';
+                return $result . '<span class="subscription-frequency-label">'
+                    . htmlspecialchars((string)$planLabel, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
+                    . '</span>';
             }
         }
 

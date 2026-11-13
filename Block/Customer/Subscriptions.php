@@ -13,6 +13,7 @@ use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magento\Framework\View\Element\Template\Context;
 use Radarsofthouse\BillwerkPlusSubscription\Api\CustomerSubscriberRepositoryInterface;
 use Radarsofthouse\BillwerkPlusSubscription\Helper\Data;
+use Radarsofthouse\BillwerkPlusSubscription\Helper\Logger;
 use Radarsofthouse\BillwerkPlusSubscription\Helper\Plan;
 use Radarsofthouse\BillwerkPlusSubscription\Helper\Subscription;
 
@@ -50,6 +51,11 @@ class Subscriptions extends \Magento\Framework\View\Element\Template
     protected $planHelper;
 
     /**
+     * @var Logger
+     */
+    protected $logger;
+
+    /**
      * @var string
      */
     private $customerId;
@@ -65,6 +71,7 @@ class Subscriptions extends \Magento\Framework\View\Element\Template
      * @param TimezoneInterface $timezoneInterface
      * @param CustomerSubscriberRepositoryInterface $customerSubscriberRepository
      * @param Data $helper
+    * @param Logger $logger
      * @param Subscription $subscriptionHelper
      * @param Plan $planHelper
      * @param array $data
@@ -75,6 +82,7 @@ class Subscriptions extends \Magento\Framework\View\Element\Template
         TimezoneInterface $timezoneInterface,
         CustomerSubscriberRepositoryInterface $customerSubscriberRepository,
         Data $helper,
+        Logger $logger,
         Subscription $subscriptionHelper,
         Plan $planHelper,
         array $data = []
@@ -84,6 +92,7 @@ class Subscriptions extends \Magento\Framework\View\Element\Template
         $this->timezoneInterface = $timezoneInterface;
         $this->customerSubscriberRepository =  $customerSubscriberRepository;
         $this->helper =  $helper;
+        $this->logger = $logger;
         $this->subscriptionHelper =  $subscriptionHelper;
         $this->planHelper =  $planHelper;
     }
@@ -140,7 +149,7 @@ class Subscriptions extends \Magento\Framework\View\Element\Template
                         $addons[] = $addon;
                     }
                 } catch (\GuzzleHttp\Exception\GuzzleException $e) {
-                    $this->_logger->error($e->getMessage());
+                    $this->logger->addError($e->getMessage());
                 }
             }
         }

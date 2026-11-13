@@ -18,42 +18,66 @@
                 <field id="instructions" type="textarea" sortOrder="13" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                     <label>Instructions</label>
                 </field>
-                <field id="private_key_test" type="text" sortOrder="14" showInDefault="1" showInStore="1" showInWebsite="1" translate="label">
+                <field id="private_key_test" type="obscure" sortOrder="14" showInDefault="1" showInStore="1" showInWebsite="1" translate="label">
                     <label>Private API Key For Test</label>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
                     <comment>Find your key at https://app.frisbii.com under "Configurations >> Integration and tools >> API credentials".
                     </comment>
                 </field>
-                <field id="private_key" type="text" sortOrder="15" showInDefault="1" showInStore="1" showInWebsite="1" translate="label">
+                <field id="private_key" type="obscure" sortOrder="17" showInDefault="1" showInStore="1" showInWebsite="1" translate="label">
                     <label>Private API Key For Live</label>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
                     <comment>Find your key at https://app.frisbii.com under "Configurations >> Integration and tools >> API credentials".
                     </comment>
                 </field>
-                <field id="api_key_type" type="select" sortOrder="16" showInDefault="1" showInStore="1" showInWebsite="1" translate="label">
+                <field id="api_key_account_test" type="label" sortOrder="16" showInDefault="1" showInStore="0" showInWebsite="0" translate="label comment">
+                    <frontend_model>Radarsofthouse\BillwerkPlusSubscription\Block\Adminhtml\System\Config\ApiKeyAccount</frontend_model>
+                    <label>API Key Account For Test</label>
+                </field>
+                <field id="api_key_account" type="label" sortOrder="18" showInDefault="1" showInStore="0" showInWebsite="0" translate="label comment">
+                    <frontend_model>Radarsofthouse\BillwerkPlusSubscription\Block\Adminhtml\System\Config\ApiKeyAccount</frontend_model>
+                    <label>API Key Account</label>
+                </field>
+                <field id="api_key_type" type="select" sortOrder="19" showInDefault="1" showInStore="1" showInWebsite="1" translate="label">
                     <label>API Key To Use</label>
                     <comment>Which of the API keys to use.</comment>
                     <source_model>Radarsofthouse\BillwerkPlusSubscription\Model\Config\Source\Keytype</source_model>
                 </field>
-                <field id="webhook" type="button" sortOrder="17" showInDefault="1" showInWebsite="1" showInStore="0" translate="label comment">
+                <field id="webhook" type="button" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0" translate="label comment">
                     <frontend_model>Radarsofthouse\BillwerkPlusSubscription\Block\Adminhtml\System\Config\Webhook</frontend_model>
-                    <label>Update webhook URL in Frisbii</label>
+                    <label>Update Webhook URLs</label>
                     <comment>Note: Save config before updating the webhook URL.</comment>
                 </field>
-                <field id="allowspecific" type="allowspecific" sortOrder="18" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                <field id="webhook_secret_sync" type="button" sortOrder="21" showInDefault="1" showInWebsite="0" showInStore="0" translate="label comment">
+                    <frontend_model>Radarsofthouse\BillwerkPlusSubscription\Block\Adminhtml\System\Config\WebhookSecret</frontend_model>
+                    <label>Sync Webhook Secrets</label>
+                </field>
+                <field id="webhook_secret_test" type="obscure" sortOrder="22" showInDefault="1" showInStore="1" showInWebsite="1" translate="label comment">
+                    <label>Webhook Secret For Test</label>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    <comment><![CDATA[Required for test webhooks. Click "Sync Webhook Secrets" or enter the current secret manually.<br />You can find at https://app.frisbii.com under "Configurations" >> "Integration and tools" >> "Webhooks" >> "Configuration" >> "Secret".]]></comment>
+                </field>
+                <field id="webhook_secret" type="obscure" sortOrder="23" showInDefault="1" showInStore="1" showInWebsite="1" translate="label comment">
+                    <label>Webhook Secret</label>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    <comment><![CDATA[Required for live webhooks. Click "Sync Webhook Secrets" or enter the current secret manually.<br />You can find at https://app.frisbii.com under "Configurations" >> "Integration and tools" >> "Webhooks" >> "Configuration" >> "Secret".]]></comment>
+                </field>
+                <field id="allowspecific" type="allowspecific" sortOrder="24" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                     <label>Payment from Applicable Countries</label>
                     <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
                 </field>
-                <field id="specificcountry" type="multiselect" sortOrder="19" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                <field id="specificcountry" type="multiselect" sortOrder="25" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                     <label>Payment from Specific Countries</label>
                     <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
                     <can_be_empty>1</can_be_empty>
                 </field>
-                <field id="allowwed_payment" type="multiselect" sortOrder="20" showInDefault="1" showInStore="1" showInWebsite="1" translate="label" >
+                <field id="allowwed_payment" type="multiselect" sortOrder="26" showInDefault="1" showInStore="1" showInWebsite="1" translate="label" >
                     <label>Allowed Payment Methods</label>
                     <comment>MobilePay Subscription has been discontinued following the merger of MobilePay and Vipps. Please switch to using Vipps MobilePay Recurring instead.</comment>
                     <source_model>Radarsofthouse\BillwerkPlusSubscription\Model\Config\Source\Allowwedpayment</source_model>
                     <config_path>payment/billwerkplus_subscription/allowwed_payment</config_path>
                 </field>
-                <field id="payment_icons" type="multiselect" sortOrder="21" showInDefault="1" showInStore="1" showInWebsite="1" translate="label">
+                <field id="payment_icons" type="multiselect" sortOrder="27" showInDefault="1" showInStore="1" showInWebsite="1" translate="label">
                     <label>Payment icons</label>
                     <comment/>
                     <source_model>Radarsofthouse\BillwerkPlusSubscription\Model\Config\Source\Paymenticons</source_model>

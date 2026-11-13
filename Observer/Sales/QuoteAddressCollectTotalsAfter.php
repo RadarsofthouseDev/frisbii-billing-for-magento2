@@ -49,8 +49,6 @@ class QuoteAddressCollectTotalsAfter implements \Magento\Framework\Event\Observe
         /** @var \Magento\Quote\Model\Quote\Address\Total $total */
         $total = $observer->getTotal();
 
-        $this->logger->addInfo(__METHOD__);
-
         if ($this->registry->registry('billwerk_subscription_webhook_renewal_order')) {
 
             $shipping = $total->getData('shipping_incl_tax');

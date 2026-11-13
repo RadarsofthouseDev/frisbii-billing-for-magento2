@@ -8,7 +8,7 @@ $order = $block->getOrder();
     </div>
     <script>
         require(['jquery','Reepay'],function($,Reepay){
-            var rp = new Reepay.WindowCheckout('<?= $escaper->escapeHtml($block->getPaymentTransactionId()); ?>');
+            var rp = new Reepay.WindowCheckout('<?= $escaper->escapeJs($block->getPaymentTransactionId()); ?>');
         });
     </script>
 </div>

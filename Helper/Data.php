@@ -13,6 +13,7 @@ use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\PaymentException;
@@ -44,6 +45,11 @@ class Data extends AbstractHelper
      * @var StoreManagerInterface
      */
     protected $storeManager;
+
+    /**
+     * @var EncryptorInterface
+     */
+    protected $encryptor;
 
     /**
      * @var ProductRepositoryInterface
@@ -83,6 +89,7 @@ class Data extends AbstractHelper
     /**
      * @param Context $context
      * @param ScopeConfigInterface $scopeConfig
+     * @param EncryptorInterface $encryptor
      * @param StoreManagerInterface $storeManager
      * @param ProductRepositoryInterface $productRepository
      * @param BuilderInterface $transactionBuilder
@@ -95,6 +102,7 @@ class Data extends AbstractHelper
     public function __construct(
         Context                    $context,
         ScopeConfigInterface       $scopeConfig,
+        EncryptorInterface         $encryptor,
         StoreManagerInterface      $storeManager,
         ProductRepositoryInterface $productRepository,
         BuilderInterface           $transactionBuilder,
@@ -106,6 +114,7 @@ class Data extends AbstractHelper
     ) {
         parent::__construct($context);
         $this->scopeConfig = $scopeConfig;
+        $this->encryptor = $encryptor;
         $this->storeManager = $storeManager;
         $this->productRepository = $productRepository;
         $this->transactionBuilder = $transactionBuilder;
@@ -142,13 +151,65 @@ class Data extends AbstractHelper
             $storeId = $this->storeManager->getStore()->getId();
         }
 
-        $testModeConfig = $this->getConfig('api_key_type', $storeId);
-        if ($testModeConfig == 1) {
-            $apiKey = $this->getConfig('private_key', $storeId);
-        } else {
-            $apiKey = $this->getConfig('private_key_test', $storeId);
+        $keyType = $this->getConfig('api_key_type', $storeId) == 1
+            ? 'private_key'
+            : 'private_key_test';
+
+        return $this->getConfiguredApiKey($keyType, $storeId);
+    }
+
+    /**
+     * Get a configured API key by environment.
+     *
+     * @param string $keyType
+     * @param int|string|null $storeId
+     * @return string
+     */
+    public function getConfiguredApiKey(string $keyType, $storeId = null)
+    {
+        if (!in_array($keyType, ['private_key', 'private_key_test'], true)) {
+            return '';
         }
-        return $apiKey ?? '';
+
+        return $this->decryptConfigValue($this->getConfig($keyType, $storeId));
+    }
+
+    /**
+     * Get the webhook secret for the configured API key environment.
+     *
+     * @param int|string|null $storeId
+     * @return string
+     */
+    public function getWebhookSecret($storeId = null)
+    {
+        $secretField = $this->getConfig('api_key_type', $storeId) == 1
+            ? 'webhook_secret'
+            : 'webhook_secret_test';
+
+        return $this->decryptConfigValue($this->getConfig($secretField, $storeId));
+    }
+
+    /**
+     * Decrypt a Magento encrypted configuration value while retaining support for plaintext values.
+     *
+     * @param mixed $value
+     * @return string
+     */
+    private function decryptConfigValue($value)
+    {
+        $value = trim((string)$value);
+        if ($value !== '' && preg_match('/^\d+:\d+:/', $value)) {
+            try {
+                $decryptedValue = $this->encryptor->decrypt($value);
+                if ($decryptedValue !== '') {
+                    return trim($decryptedValue);
+                }
+            } catch (\Exception $exception) {
+                return '';
+            }
+        }
+
+        return $value;
     }
 
     /**
@@ -394,9 +455,9 @@ class Data extends AbstractHelper
     {
         $allowedPaymentConfig = $this->getConfig('allowwed_payment', $order->getStoreId());
         $paymentMethods = explode(',', $allowedPaymentConfig);
-        if(strpos($allowedPaymentConfig, 'vipps_recurring') !== false){
+        if (strpos($allowedPaymentConfig, 'vipps_recurring') !== false) {
             $currencyCode = $order->getOrderCurrencyCode();
-            if(!in_array($currencyCode, ['DKK', 'EUR', 'NOK'])){
+            if (!in_array($currencyCode, ['DKK', 'EUR', 'NOK'])) {
                 unset($paymentMethods[array_search('vipps_recurring', $paymentMethods)]);
             }
         }
@@ -468,7 +529,7 @@ class Data extends AbstractHelper
             $payment->setLastTransId($paymentData['transaction']);
             $payment->setTransactionId($paymentData['transaction']);
             $payment->setAdditionalInformation([\Magento\Sales\Model\Order\Payment\Transaction::RAW_DETAILS =>
-                (array)$paymentData]);
+            (array)$paymentData]);
 
             $formatedPrice = $order->getBaseCurrency()->formatTxt($order->getGrandTotal());
 
@@ -476,7 +537,7 @@ class Data extends AbstractHelper
                 ->setOrder($order)
                 ->setTransactionId($paymentData['transaction'])
                 ->setAdditionalInformation([\Magento\Sales\Model\Order\Payment\Transaction::RAW_DETAILS =>
-                    (array)$paymentData])
+                (array)$paymentData])
                 ->setFailSafe(true)
                 ->build($state)
                 ->setIsClosed($isClosed);
@@ -848,7 +909,8 @@ class Data extends AbstractHelper
 
         if (!empty($plan['schedule_type'])) {
             $type = $plan['schedule_type'];
-            if (!empty($plan['schedule_fixed_day']) && !empty($plan['interval_length'])
+            if (
+                !empty($plan['schedule_fixed_day']) && !empty($plan['interval_length'])
                 && $plan['schedule_type'] == 'month_fixedday'
             ) {
                 if ($plan['schedule_fixed_day'] == 28) {
@@ -866,7 +928,7 @@ class Data extends AbstractHelper
             $scheduleText = $this->planScheduleTypeText($type);
             if (!empty($scheduleText)) {
                 $result = '/' . ($plan['interval_length'] > 1 ?
-                        "{$plan['interval_length']} {$scheduleText}s" : "$scheduleText");
+                    "{$plan['interval_length']} {$scheduleText}s" : "$scheduleText");
             }
         }
 

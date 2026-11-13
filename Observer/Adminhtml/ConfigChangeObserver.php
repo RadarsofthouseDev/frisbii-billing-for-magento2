@@ -109,7 +109,7 @@ class ConfigChangeObserver implements ObserverInterface
         $allowedPayment = $this->_scopeConfig->getValue($allowedPaymentPath, $scope, $scopeId);
         if (strpos($allowedPayment, 'mobilepay_subscriptions') !== false) {
             $this->_messageManager->addWarningMessage(
-                _('MobilePay Subscription has been discontinued following the merger of MobilePay and Vipps. Please switch to using Vipps MobilePay Recurring instead.')
+                __('MobilePay Subscription has been discontinued following the merger of MobilePay and Vipps. Please switch to using Vipps MobilePay Recurring instead.')
             );
         }
     }

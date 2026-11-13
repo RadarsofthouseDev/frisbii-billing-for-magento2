@@ -57,7 +57,7 @@ class ValueProvider
                         'dataScope' => 'billwerk_coupon_code',
                         'sortOrder' => 49,
                         'options' => $this->couponCode->toOptionArray(),
-                        'notice' => _('Frisbii Coupon code will replace Magento Coupon code.')
+                        'notice' => __('Frisbii Coupon code will replace Magento Coupon code.')
                     ],
                 ],
             ],
@@ -74,7 +74,7 @@ class ValueProvider
                         'dataScope' => 'billwerk_discount_handle',
                         'sortOrder' => 50,
                         'options' => $this->discountHandle->toOptionArray(),
-                        'notice' => _('Discount handle when "No Coupon".')
+                        'notice' => __('Discount handle when "No Coupon".')
                     ],
                 ],
             ],

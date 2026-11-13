@@ -9,10 +9,26 @@ declare(strict_types=1);
 
 namespace Radarsofthouse\BillwerkPlusSubscription\Ui\Component\Listing\Column;
 
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\UiComponent\ContextInterface;
+use Magento\Framework\View\Element\UiComponentFactory;
 use Magento\Ui\Component\Listing\Columns\Column;
 
 class SubscriptionHandle extends Column
 {
+    private Escaper $escaper;
+
+    public function __construct(
+        ContextInterface $context,
+        UiComponentFactory $uiComponentFactory,
+        Escaper $escaper,
+        array $components = [],
+        array $data = []
+    ) {
+        $this->escaper = $escaper;
+        parent::__construct($context, $uiComponentFactory, $components, $data);
+    }
+
     /**
      * Prepare Data Source
      *
@@ -25,13 +41,17 @@ class SubscriptionHandle extends Column
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as &$item) {
                 // Assuming 'custom_column' is the field name in the custom table
-                $customColumnValue = $item['billwerk_sub_handle'];
+                $customColumnValue = (string)$item['billwerk_sub_handle'];
 
                 // You can modify the rendering logic as needed
                 // For example, you can add HTML markup or format the value
                 if (!empty($customColumnValue)) {
-                    $url = "https://app.frisbii.com/#/rp/subscriptions/subscription/" . $customColumnValue;
-                    $customColumnValue = '<a href="' . $url . '" target="_blank">' . $customColumnValue . '</a>';
+                    $url = "https://app.frisbii.com/#/rp/subscriptions/subscription/" . rawurlencode($customColumnValue);
+                    $customColumnValue = sprintf(
+                        '<a href="%s" target="_blank" rel="noopener noreferrer">%s</a>',
+                        $this->escaper->escapeHtmlAttr($url),
+                        $this->escaper->escapeHtml($customColumnValue)
+                    );
                 }
                 $item[$this->getData('name')] = $customColumnValue;
             }

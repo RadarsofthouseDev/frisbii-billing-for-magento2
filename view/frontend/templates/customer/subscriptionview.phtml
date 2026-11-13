@@ -1,7 +1,14 @@
 <?php
 /** @var \Radarsofthouse\BillwerkPlusSubscription\Block\Customer\Subscriptionview $block */
 $subscription = $block->getSubscription();
-if ($subscription['payment_method_added']) {
+// empty when the handle is not owned by the customer or the provider request failed
+if (empty($subscription) || !is_array($subscription)): ?>
+    <div class="message info empty">
+        <span><?= $escaper->escapeHtml(__('The subscription could not be found.')); ?></span>
+    </div>
+    <?php return;
+endif;
+if (!empty($subscription['payment_method_added']) && !empty($subscription['active_payment_methods'])) {
     foreach ($subscription['active_payment_methods'] as $activePaymentMethodId) {
         $paymentMethods[$activePaymentMethodId] = $block->getPaymentMethod($activePaymentMethodId);
     }

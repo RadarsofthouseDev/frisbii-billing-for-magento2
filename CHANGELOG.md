@@ -1,4 +1,7 @@
 # Changelog
+## Version 1.0.22 on 13 November 2026
+- Payment improvements
+
 ## Version 1.0.21 on 22 September 2026
 - Added the Klarna payment method
 
