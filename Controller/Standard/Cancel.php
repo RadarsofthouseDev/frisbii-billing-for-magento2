@@ -22,6 +22,7 @@ use Magento\Framework\View\Result\PageFactory;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\TransactionSearchResultInterfaceFactory;
 use Radarsofthouse\BillwerkPlusSubscription\Api\Data\SessionInterfaceFactory;
+use Radarsofthouse\BillwerkPlusSubscription\Helper\Charge;
 use Radarsofthouse\BillwerkPlusSubscription\Helper\Data;
 use Radarsofthouse\BillwerkPlusSubscription\Helper\Logger;
 use Radarsofthouse\BillwerkPlusSubscription\Helper\Session;
@@ -95,6 +96,11 @@ class Cancel extends Action
     protected $subscriptionHelper;
 
     /**
+     * @var Charge
+     */
+    protected $chargeHelper;
+
+    /**
      * @param Context $context
      * @param PageFactory $resultPageFactory
      * @param Http $request
@@ -108,6 +114,7 @@ class Cancel extends Action
      * @param TransactionSearchResultInterfaceFactory $transactionSearchResultInterfaceFactory
      * @param SessionInterfaceFactory $sessionInterfaceFactory
      * @param Subscription $subscriptionHelper
+     * @param Charge $chargeHelper
      */
     public function __construct(
         Context                                 $context,
@@ -122,7 +129,8 @@ class Cancel extends Action
         Logger                                  $logger,
         TransactionSearchResultInterfaceFactory $transactionSearchResultInterfaceFactory,
         SessionInterfaceFactory                 $sessionInterfaceFactory,
-        Subscription                            $subscriptionHelper
+        Subscription                            $subscriptionHelper,
+        Charge                                  $chargeHelper
     ) {
         $this->resultPageFactory = $resultPageFactory;
         $this->request = $request;
@@ -137,6 +145,7 @@ class Cancel extends Action
         $this->transactionSearchResultInterfaceFactory = $transactionSearchResultInterfaceFactory;
         $this->sessionInterfaceFactory = $sessionInterfaceFactory;
         $this->subscriptionHelper = $subscriptionHelper;
+        $this->chargeHelper = $chargeHelper;
 
         parent::__construct($context);
     }
@@ -201,8 +210,11 @@ class Cancel extends Action
             $isSubscriptionConfirmed = (string)$session->getOrderType() === 'subscription_order'
                 && !empty($order->getBillwerkSubHandle());
 
+            // the webhook may not have saved the transaction yet, so also check Frisbii
+            $isPaidInFrisbii = $this->isPaidInFrisbii($session, $order, $subscriptionHandle);
+
             // don't allow the cancellation if already have transactions (payment is paid)
-            if (count($transactions->getItems()) == 0 && !$isSubscriptionConfirmed) {
+            if (count($transactions->getItems()) == 0 && !$isSubscriptionConfirmed && !$isPaidInFrisbii) {
                 $order->cancel();
                 $order->addStatusHistoryComment('Frisbii : order have been cancelled by payment page');
                 $order->save();
@@ -314,6 +326,42 @@ class Cancel extends Action
         }
 
         return false;
+    }
+
+    /**
+     * Check in Frisbii if the payment of the order is already done.
+     *
+     * If Frisbii cannot be read, return false and the local checks (Magento transactions) decide as before.
+     *
+     * @param \Radarsofthouse\BillwerkPlusSubscription\Model\Session $session
+     * @param OrderInterface $order
+     * @param string $subscriptionHandle
+     * @return bool
+     */
+    private function isPaidInFrisbii($session, $order, $subscriptionHandle): bool
+    {
+        try {
+            $apiKey = $this->helper->getApiKey($order->getStoreId());
+            if ((string)$session->getOrderType() === 'mixed_order') {
+                $charge = $this->chargeHelper->get($apiKey, (string)$order->getIncrementId());
+                $isPaid = is_array($charge)
+                    && in_array($charge['state'] ?? '', ['authorized', 'settled'], true);
+            } else {
+                $subscription = $this->subscriptionHelper->get($apiKey, $subscriptionHandle);
+                // Frisbii creates the subscription as pending when the checkout opens,
+                // it is confirmed only when the customer has added a payment method
+                $isPaid = is_array($subscription) && !empty($subscription['payment_method_added']);
+            }
+        } catch (\Throwable $exception) {
+            $this->logger->addError('Unable to check the payment state in Frisbii: ' . $exception->getMessage());
+            return false;
+        }
+
+        if ($isPaid) {
+            $this->logger->addDebug('Frisbii payment is done : ignore cancellation for order ' . $order->getId());
+        }
+
+        return $isPaid;
     }
 
     /**

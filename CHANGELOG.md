@@ -1,4 +1,7 @@
 # Changelog
+## Version 1.0.23 on 17 November 2026
+- Payment improvements
+
 ## Version 1.0.22 on 13 November 2026
 - Payment improvements
 

@@ -129,7 +129,7 @@
                 </field>
                 <field id="send_order_email_when_success" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="105" translate="label" type="select">
                     <label>Send Order Confirmation</label>
-                    <comment>Send order confirmation Email after payment has been completed.</comment>
+                    <comment>Send the module order confirmation email when the order is placed, before the customer pays on the Frisbii payment page. The standard Magento order email is not sent.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="order_confirmation_email_template" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="106" translate="label" type="select">

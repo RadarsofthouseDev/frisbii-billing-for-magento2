@@ -1102,6 +1102,18 @@ class Index extends Action
                 ];
             }
 
+            // Check in Frisbii that the charge is cancelled
+            $chargeRes = $this->chargeHelper->get($apiKey, $order_id);
+            if (!is_array($chargeRes) || ($chargeRes['state'] ?? null) !== 'cancelled') {
+                $chargeState = is_array($chargeRes) ? ($chargeRes['state'] ?? 'unknown') : 'not found';
+                $this->logger->addError('Cannot cancel order #' . $order_id . ', charge state: ' . $chargeState);
+
+                return [
+                    'status' => 500,
+                    'message' => 'charge is not cancelled in Frisbii, state: ' . $chargeState
+                ];
+            }
+
             $order->cancel();
             $order->addStatusHistoryComment('Frisbii : order have been cancelled by the webhook');
             $order->save();
@@ -1164,6 +1176,17 @@ class Index extends Action
                 $order_id
             );
 
+            // Check the charge state in Frisbii before saving
+            $chargeError = $this->validateAuthorizedCharge($chargeRes, $order);
+            if ($chargeError) {
+                $this->logger->addError('Cannot authorize order #' . $order_id . ': ' . $chargeError);
+
+                return [
+                    'status' => 500,
+                    'message' => 'webhook authorize error : ' . $chargeError,
+                ];
+            }
+
             // add Reepay payment data
             $data = [
                 'order_id' => $order->getId(),
@@ -1199,6 +1222,30 @@ class Index extends Action
     }
 
     /**
+     * Check the charge from Frisbii before adding the authorize transaction to the order
+     *
+     * @param array|bool $chargeRes charge from the API, false if the request failed
+     * @param Order $order
+     * @return string|null error message, or null if the charge is valid
+     */
+    protected function validateAuthorizedCharge($chargeRes, $order)
+    {
+        if (!is_array($chargeRes) || empty($chargeRes['state'])) {
+            return 'charge not found.';
+        }
+
+        if (!in_array($chargeRes['state'], ['authorized', 'settled'], true)) {
+            return 'invalid charge state: ' . $chargeRes['state'];
+        }
+
+        if (($chargeRes['currency'] ?? null) !== $order->getOrderCurrencyCode()) {
+            return 'charge currency does not match the order.';
+        }
+
+        return null;
+    }
+
+    /**
      * Get base order
      *
      * @param string $subscriptionHandle
@@ -1213,6 +1260,51 @@ class Index extends Action
         if ($collectionOrder->getTotalCount()) {
             return $collectionOrder->getFirstItem()->getData('entity_id');
         }
+        return null;
+    }
+
+    /**
+     * Check the invoice from Frisbii API before creating or completing a renewal order
+     *
+     * @param array|bool $invoice invoice from the API, false if the request failed
+     * @param string $subscriptionHandle subscription handle from the webhook
+     * @param bool $requireSettled true = invoice state must be settled
+     * @return array|null error response, or null if the invoice is valid
+     */
+    protected function validateRenewalInvoice($invoice, $subscriptionHandle, $requireSettled)
+    {
+        if (!is_array($invoice) || empty($invoice['state'])) {
+            return [
+                'status' => 500,
+                'message' => 'invoice not found.',
+            ];
+        }
+
+        if (($invoice['subscription'] ?? null) !== $subscriptionHandle) {
+            $this->logger->addError(__METHOD__, [
+                'message' => 'invoice does not belong to the subscription',
+                'invoice' => $invoice['handle'] ?? null,
+                'subscription' => $subscriptionHandle,
+            ]);
+            return [
+                'status' => 500,
+                'message' => 'invoice does not match the subscription.',
+            ];
+        }
+
+        if ($requireSettled) {
+            $isValidState = $invoice['state'] === 'settled';
+        } else {
+            $isValidState = !in_array($invoice['state'], ['failed', 'cancelled'], true);
+        }
+
+        if (!$isValidState) {
+            return [
+                'status' => 500,
+                'message' => 'invalid invoice state: ' . $invoice['state'],
+            ];
+        }
+
         return null;
     }
 
@@ -1257,6 +1349,13 @@ class Index extends Action
 
             $apiKey = $this->helper->getApiKey($baseOrder->getStoreId());
             $invoice = $this->invoiceHelper->get($apiKey, $data['invoice']);
+
+            // The invoice is usually not settled yet when the renewal webhook arrives,
+            // so here we only check that it belongs to the subscription and is still valid.
+            $invoiceError = $this->validateRenewalInvoice($invoice, $data['subscription'], false);
+            if ($invoiceError) {
+                return $invoiceError;
+            }
 
             if ($invoice['amount'] == 0) {
                 return [
@@ -1407,6 +1506,12 @@ class Index extends Action
 
         $apiKey = $this->helper->getApiKey($baseOrder->getStoreId());
         $invoiceBW = $this->invoiceHelper->get($apiKey, $data['invoice']);
+
+        // Check that the invoice is settled and belongs to this subscription
+        $invoiceError = $this->validateRenewalInvoice($invoiceBW, $data['subscription'], true);
+        if ($invoiceError) {
+            return $invoiceError;
+        }
 
         if ($invoiceBW['amount'] == 0) {
             return [
@@ -1604,31 +1709,7 @@ class Index extends Action
      */
     protected function subscriptionActive($data)
     {
-        $subscriptionHandle = $data['subscription'];
-        $customerHandle = $data['customer'];
-        /** @var \Radarsofthouse\BillwerkPlusSubscription\Api\Data\CustomerSubscriptionInterface $customerSubscription */
-        $customerSubscription = $this->customerSubscriptionFactory->create();
-        $customerSubscription->load($subscriptionHandle, 'subscription_handle');
-        if ($customerSubscription->getEntityId()) {
-            $customerSubscription->setStatus('active');
-            try {
-                $this->customerSubscriptionRepository->save($customerSubscription);
-                $this->updateCustomerSubscriber($customerHandle);
-                return [
-                    'status' => 200,
-                    'message' => 'update status already',
-                ];
-            } catch (LocalizedException $e) {
-                return [
-                    'status' => 500,
-                    'message' => 'settled webhook exception : ' . $e->getMessage(),
-                ];
-            }
-        }
-        return [
-            'status' => 500,
-            'message' => 'Not found subscription'
-        ];
+        return $this->syncSubscriptionStatus($data, 'active');
     }
 
     /**
@@ -1639,30 +1720,76 @@ class Index extends Action
      */
     protected function subscriptionInActive($data)
     {
-        $subscriptionHandle = $data['subscription'];
-        $customerHandle = $data['customer'];
+        return $this->syncSubscriptionStatus($data, 'in_active');
+    }
+
+    /**
+     * Update the local subscription status from the real subscription state in Frisbii.
+     * The status and the customer handle are read from the API.
+     *
+     * @param array $data
+     * @param string $expectedStatus status that the webhook event says (active or in_active)
+     * @return array
+     */
+    protected function syncSubscriptionStatus($data, $expectedStatus)
+    {
+        $subscriptionHandle = $data['subscription'] ?? null;
+        if (empty($subscriptionHandle) || !is_string($subscriptionHandle)) {
+            return [
+                'status' => 500,
+                'message' => 'Not found subscription'
+            ];
+        }
+
         /** @var \Radarsofthouse\BillwerkPlusSubscription\Api\Data\CustomerSubscriptionInterface $customerSubscription */
         $customerSubscription = $this->customerSubscriptionFactory->create();
         $customerSubscription->load($subscriptionHandle, 'subscription_handle');
-        if ($customerSubscription->getEntityId()) {
-            $customerSubscription->setStatus('in_active');
-            try {
-                $this->customerSubscriptionRepository->save($customerSubscription);
-                $this->updateCustomerSubscriber($customerHandle);
-                return [
-                    'status' => 200,
-                    'message' => 'update status already',
-                ];
-            } catch (LocalizedException $e) {
+        if (!$customerSubscription->getEntityId()) {
+            return [
+                'status' => 500,
+                'message' => 'Not found subscription'
+            ];
+        }
+
+        try {
+            $baseOrderId = $this->getBaseOrderId($subscriptionHandle);
+            $storeId = $baseOrderId ? $this->orderRepository->get($baseOrderId)->getStoreId() : null;
+            $apiKey = $this->helper->getApiKey($storeId);
+            $subscription = $this->subscriptionHelper->get($apiKey, $subscriptionHandle);
+
+            if (!is_array($subscription) || empty($subscription['state']) || empty($subscription['customer'])) {
                 return [
                     'status' => 500,
-                    'message' => 'settled webhook exception : ' . $e->getMessage(),
+                    'message' => 'subscription not found in Frisbii.'
                 ];
             }
+
+            $isInActive = !empty($subscription['is_cancelled'])
+                || in_array($subscription['state'], ['expired', 'on_hold'], true);
+            $actualStatus = $isInActive ? 'in_active' : 'active';
+
+            if ($actualStatus !== $expectedStatus) {
+                $this->logger->addDebug(__METHOD__, [
+                    'message' => 'webhook status is different from Frisbii, use the status from Frisbii',
+                    'subscription' => $subscriptionHandle,
+                    'webhook_status' => $expectedStatus,
+                    'frisbii_status' => $actualStatus,
+                ]);
+            }
+
+            $customerSubscription->setStatus($actualStatus);
+            $this->customerSubscriptionRepository->save($customerSubscription);
+            $this->updateCustomerSubscriber($subscription['customer']);
+
+            return [
+                'status' => 200,
+                'message' => 'update status already',
+            ];
+        } catch (LocalizedException | Exception $e) {
+            return [
+                'status' => 500,
+                'message' => 'subscription status webhook exception : ' . $e->getMessage(),
+            ];
         }
-        return [
-            'status' => 500,
-            'message' => 'Not found subscription'
-        ];
     }
 }
